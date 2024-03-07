@@ -35,6 +35,7 @@ namespace RainMeadow
             On.Player.GetInitialSlugcatClass += Player_GetInitialSlugcatClass;
 
             On.SlugcatStats.SlugcatFoodMeter += SlugcatStats_SlugcatFoodMeter;
+            On.ShortcutGraphics.ShortCutColor += ShortcutGraphics_ShortCutColor;
 
 
             On.RegionGate.AllPlayersThroughToOtherSide += RegionGate_AllPlayersThroughToOtherSide;
@@ -43,6 +44,21 @@ namespace RainMeadow
 
             On.RainWorldGame.GameOver += RainWorldGame_GameOver;
             On.RainWorldGame.GoToDeathScreen += RainWorldGame_GoToDeathScreen;
+
+        }
+
+        private Color ShortcutGraphics_ShortCutColor(On.ShortcutGraphics.orig_ShortCutColor orig, ShortcutGraphics self, Creature crit, RWCustom.IntVector2 pos)
+        {
+
+            if (isStoryMode(out var storyGameMode))
+            {
+                if (crit.Template.type == CreatureTemplate.Type.Slugcat)
+                {
+                    return (storyGameMode.clientSettings as StoryClientSettings).bodyColor; // TODO: This returns the user's slugcat for all slugcats from their perspective atm. 
+                }
+                return orig(self, crit, pos);
+            }
+            return orig(self, crit, pos);
 
         }
 
