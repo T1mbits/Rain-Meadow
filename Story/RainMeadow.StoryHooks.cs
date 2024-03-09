@@ -44,6 +44,8 @@ namespace RainMeadow
             On.RainWorldGame.GameOver += RainWorldGame_GameOver;
             On.RainWorldGame.GoToDeathScreen += RainWorldGame_GoToDeathScreen;
 
+
+
         }
 
         private void Player_GetInitialSlugcatClass(On.Player.orig_GetInitialSlugcatClass orig, Player self)
@@ -63,6 +65,23 @@ namespace RainMeadow
                 else if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStoryRed)
                 {
                     self.SlugCatClass = SlugcatStats.Name.Red;
+                }
+                else if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStoryArtificer)
+                {
+                    self.SlugCatClass = MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Artificer;
+                }
+                else if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStorySpearmaster)
+                {
+                    self.SlugCatClass = MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Spear;
+                }
+                else if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStoryRivulet)
+                {
+
+                    self.SlugCatClass = MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Rivulet;
+                }
+                else if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStorySaint)
+                {
+                    self.SlugCatClass = MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Saint;
                 }
             }
         }
