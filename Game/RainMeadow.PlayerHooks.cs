@@ -302,6 +302,26 @@ public partial class RainMeadow
             {
                 slugcat = SlugcatStats.Name.Red;
             }
+            else if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStoryArtificer)
+            {
+                slugcat = MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Artificer;
+            }
+            else if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStoryRivulet)
+            {
+                slugcat = MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Rivulet;
+            }
+            else if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStorySpearmaster)
+            {
+                slugcat = MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Spear;
+            }
+            else if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStorySaint)
+            {
+                slugcat = SlugcatStats.Name.Red;
+            }
+            else if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStorySofanthiel)
+            {
+                slugcat = MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Sofanthiel;
+            }
         }
         orig(self, slugcat, malnourished);
 

@@ -74,7 +74,7 @@ namespace RainMeadow
                 this.characterPages.Add(new SlugcatCustomSelection(this, ssm, 1 + j, ssm.slugcatColorOrder[j]));
                 this.pages.Add(this.characterPages[j]);
                 // ssm.SlugcatUnlocked(ssm.slugcatColorOrder[j]);
-                
+
 
 
             }
@@ -417,7 +417,6 @@ namespace RainMeadow
 
         public static List<SlugcatStats.Name> AllSlugcats()
         {
-            // List<string> namesToExclude = new List<string> { "Night", "MeadowOnline", "MeadowOnlineRemote" }; // TODO: follow up on these
             var filteredList = new List<SlugcatStats.Name>();
 
 
@@ -432,14 +431,13 @@ namespace RainMeadow
                 filteredList.Add(Ext_SlugcatStatsName.OnlineStoryWhite);
                 filteredList.Add(Ext_SlugcatStatsName.OnlineStoryYellow);
                 filteredList.Add(Ext_SlugcatStatsName.OnlineStoryRed);
-                if (!OnlineManager.lobby.isOwner)
-                {
-                    filteredList.Add(Ext_SlugcatStatsName.OnlineStoryArtificer);
-                    filteredList.Add(Ext_SlugcatStatsName.OnlineStorySpearmaster);
-                    filteredList.Add(Ext_SlugcatStatsName.OnlineStoryRivulet);
-                    filteredList.Add(Ext_SlugcatStatsName.OnlineStorySaint);
 
-                }
+                filteredList.Add(Ext_SlugcatStatsName.OnlineStoryArtificer);
+                filteredList.Add(Ext_SlugcatStatsName.OnlineStorySpearmaster);
+                filteredList.Add(Ext_SlugcatStatsName.OnlineStoryRivulet);
+                filteredList.Add(Ext_SlugcatStatsName.OnlineStorySaint);
+                filteredList.Add(Ext_SlugcatStatsName.OnlineStoryGourmand);
+                filteredList.Add(Ext_SlugcatStatsName.OnlineStorySofanthiel);
 
             }
 
@@ -497,6 +495,21 @@ namespace RainMeadow
             else if (name == Ext_SlugcatStatsName.OnlineStorySaint)
             {
                 currentCampaignName = "SAINT";
+            }
+
+            else if (name == Ext_SlugcatStatsName.OnlineStorySofanthiel)
+            {
+                currentCampaignName = "SOFANTHIEL";
+            }
+
+            else if (name == Ext_SlugcatStatsName.OnlineStoryRivulet)
+            {
+                currentCampaignName = "RIVULET";
+            }
+
+            else if (name == Ext_SlugcatStatsName.OnlineStoryGourmand)
+            {
+                currentCampaignName = "GOURMAND";
             }
             else
             {

@@ -60,6 +60,35 @@ namespace RainMeadow
             {
                 return SlugcatStats.Name.Red;
             }
+
+            else if (currentCampaign == RainMeadow.Ext_SlugcatStatsName.OnlineStoryArtificer)
+            {
+                return MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Artificer;
+            }
+
+            else if (currentCampaign == RainMeadow.Ext_SlugcatStatsName.OnlineStoryRivulet)
+            {
+                return MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Rivulet;
+            }
+
+            else if (currentCampaign == RainMeadow.Ext_SlugcatStatsName.OnlineStorySpearmaster)
+            {
+                return MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Spear;
+            }
+
+            else if (currentCampaign == RainMeadow.Ext_SlugcatStatsName.OnlineStorySaint)
+            {
+                return MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Saint;
+            }
+
+            else if (currentCampaign == RainMeadow.Ext_SlugcatStatsName.OnlineStoryGourmand)
+            {
+                return MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Gourmand;
+            }
+            else if (currentCampaign == RainMeadow.Ext_SlugcatStatsName.OnlineStorySofanthiel)
+            {
+                return MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Sofanthiel;
+            }
             else
             {
                 return SlugcatStats.Name.White;

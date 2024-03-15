@@ -43,10 +43,9 @@ namespace RainMeadow
 
             On.RainWorldGame.GameOver += RainWorldGame_GameOver;
             On.RainWorldGame.GoToDeathScreen += RainWorldGame_GoToDeathScreen;
-
-
-
         }
+
+
 
         private void Player_GetInitialSlugcatClass(On.Player.orig_GetInitialSlugcatClass orig, Player self)
         {
@@ -66,23 +65,32 @@ namespace RainMeadow
                 {
                     self.SlugCatClass = SlugcatStats.Name.Red;
                 }
-                else if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStoryArtificer)
-                {
-                    self.SlugCatClass = MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Artificer;
-                }
-                else if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStorySpearmaster)
-                {
-                    self.SlugCatClass = MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Spear;
-                }
-                else if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStoryRivulet)
-                {
 
-                    self.SlugCatClass = MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Rivulet;
+                if (ModManager.MSC) {
+                if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStoryArtificer)
+                    {
+                        self.SlugCatClass = MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Artificer;
+                    }
+                    else if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStorySpearmaster)
+                    {
+                        self.SlugCatClass = MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Spear;
+                    }
+                    else if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStoryRivulet)
+                    {
+
+                        self.SlugCatClass = MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Rivulet;
+                    }
+                    else if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStorySaint)
+                    {
+                        self.SlugCatClass = MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Saint;
+                    }
+
+                    else if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStorySofanthiel)
+                    {
+                        self.SlugCatClass = MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Sofanthiel;
+                    }
                 }
-                else if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStorySaint)
-                {
-                    self.SlugCatClass = MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Saint;
-                }
+
             }
         }
 
@@ -170,15 +178,56 @@ namespace RainMeadow
         private SaveState PlayerProgression_GetOrInitiateSaveState(On.PlayerProgression.orig_GetOrInitiateSaveState orig, PlayerProgression self, SlugcatStats.Name saveStateNumber, RainWorldGame game, ProcessManager.MenuSetup setup, bool saveAsDeathOrQuit)
         {
             var origSaveState = orig(self, saveStateNumber, game, setup, saveAsDeathOrQuit);
-            if (isStoryMode(out var gameMode))
+           
+            if (isStoryMode(out var storyGameMode))
             {
                 //self.currentSaveState.LoadGame(gameMode.saveStateProgressString, game); //pretty sure we can just stuff the string here
-                var storyClientSettings = gameMode.clientSettings as StoryClientSettings;
+                var storyClientSettings = storyGameMode.clientSettings as StoryClientSettings;
+
+                if (storyGameMode.currentCampaign == Ext_SlugcatStatsName.OnlineStoryRed)
+                {
+                    storyClientSettings.myLastDenPos = "LF_H01";
+                }
+                if (ModManager.MSC)
+                {
+                    if (storyGameMode.currentCampaign == Ext_SlugcatStatsName.OnlineStorySpearmaster)
+                    {
+                        storyClientSettings.myLastDenPos = "GATE_OE_SU";
+                    }
+                    else if (storyGameMode.currentCampaign == Ext_SlugcatStatsName.OnlineStorySofanthiel)
+
+                    {
+                        storyClientSettings.myLastDenPos = "SH_GOR02";
+                    }
+                    else if (storyGameMode.currentCampaign == Ext_SlugcatStatsName.OnlineStoryRivulet)
+
+                    {
+                        storyClientSettings.myLastDenPos = "DS_RIVSTART";
+                    }
+
+                    else if (storyGameMode.currentCampaign == Ext_SlugcatStatsName.OnlineStorySaint)
+
+                    {
+                        storyClientSettings.myLastDenPos = "SI_SAINTINTRO";
+                    }
+
+                    else if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStoryArtificer)
+                    {
+                        storyClientSettings.myLastDenPos = "GW_A24";
+                    }
+
+                    else if ((storyGameMode.clientSettings as StoryClientSettings).playingAs == Ext_SlugcatStatsName.OnlineStorySofanthiel)
+                    {
+                        storyClientSettings.myLastDenPos = "SH_E01";
+                    }
+                }
+
                 origSaveState.denPosition = storyClientSettings.myLastDenPos;
                 return origSaveState;
             }
             return origSaveState;
         }
+
 
         private void KarmaLadderScreen_Singal(On.Menu.KarmaLadderScreen.orig_Singal orig, Menu.KarmaLadderScreen self, Menu.MenuObject sender, string message)
         {

@@ -171,7 +171,7 @@ namespace RainMeadow
                             sceneID = Menu.MenuScene.SceneID.Slugcat_White;
                             self.sceneOffset = new Vector2(-10f, 100f);
                             self.slugcatDepth = 3.1000001f;
-                            
+
                         }
 
                         else if (slugcatCustom.slug == Ext_SlugcatStatsName.OnlineStoryYellow)
@@ -183,63 +183,71 @@ namespace RainMeadow
 
                         else if (slugcatCustom.slug == Ext_SlugcatStatsName.OnlineStoryRed)
                         {
-                         
+
                             sceneID = Menu.MenuScene.SceneID.Slugcat_Red;
                             self.sceneOffset = new Vector2(-10f, 100f);
                             self.slugcatDepth = 3.1000001f;
                         }
-                        else if (ModManager.MSC)
+
+                        else
                         {
 
-/*                            if (slugcatCustom.slug == MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Rivulet)
-                            {
-
-                                sceneID = MoreSlugcats.MoreSlugcatsEnums.MenuSceneID.Slugcat_Rivulet;
-                                self.sceneOffset = new Vector2(-10f, 100f);
-                                self.slugcatDepth = 3.1000001f;
-                            }*/
-                             if (slugcatCustom.slug == Ext_SlugcatStatsName.OnlineStoryArtificer)
-                            {
-
-                                sceneID = Menu.MenuScene.SceneID.NewDeath;
-                                self.sceneOffset = new Vector2(-10f, 100f);
-                                self.slugcatDepth = 3.1000001f;
-                              
-                            }
-/*                            else if (slugcatCustom.slug == MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Saint)
-                            {
-
-                                sceneID = MoreSlugcats.MoreSlugcatsEnums.MenuSceneID.Slugcat_Saint;
-                                self.sceneOffset = new Vector2(-10f, 100f);
-                                self.slugcatDepth = 3.1000001f;
-                            }
-
-                            else if (slugcatCustom.slug == MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Spear)
-                            {
-
-                                sceneID = MoreSlugcats.MoreSlugcatsEnums.MenuSceneID.Slugcat_Spear;
-                                self.sceneOffset = new Vector2(-10f, 100f);
-                                self.slugcatDepth = 3.1000001f;
-                            }*/
-
-                            else
-                            {
-                                sceneID = Menu.MenuScene.SceneID.NewDeath;
-                                self.sceneOffset = new Vector2(-10f, 100f);
-                                self.slugcatDepth = 3.1000001f;
-                            }
+                            sceneID = Menu.MenuScene.SceneID.NewDeath;
+                            self.sceneOffset = new Vector2(-10f, 100f);
+                            self.slugcatDepth = 3.1000001f;
                         }
-                       
+                        /*       else if (ModManager.MSC)
+                               {*/
+
+                        /*                            if (slugcatCustom.slug == MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Rivulet)
+                                                    {
+
+                                                        sceneID = MoreSlugcats.MoreSlugcatsEnums.MenuSceneID.Slugcat_Rivulet;
+                                                        self.sceneOffset = new Vector2(-10f, 100f);
+                                                        self.slugcatDepth = 3.1000001f;
+                                                    }*/
+                        /*                         if (slugcatCustom.slug == Ext_SlugcatStatsName.OnlineStoryArtificer)
+                                                {
+
+                                                    sceneID = Menu.MenuScene.SceneID.NewDeath;
+                                                    self.sceneOffset = new Vector2(-10f, 100f);
+                                                    self.slugcatDepth = 3.1000001f;
+
+                                                }*/
+                        /*                            else if (slugcatCustom.slug == MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Saint)
+                                                    {
+
+                                                        sceneID = MoreSlugcats.MoreSlugcatsEnums.MenuSceneID.Slugcat_Saint;
+                                                        self.sceneOffset = new Vector2(-10f, 100f);
+                                                        self.slugcatDepth = 3.1000001f;
+                                                    }
+
+                                                    else if (slugcatCustom.slug == MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Spear)
+                                                    {
+
+                                                        sceneID = MoreSlugcats.MoreSlugcatsEnums.MenuSceneID.Slugcat_Spear;
+                                                        self.sceneOffset = new Vector2(-10f, 100f);
+                                                        self.slugcatDepth = 3.1000001f;
+                                                    }*/
                     }
-                    else // Client
+                    else
                     {
-                        sceneID = Menu.MenuScene.SceneID.Intro_6_7_Rain_Drop; // TODO: Retrieve current save's region
+                        sceneID = Menu.MenuScene.SceneID.NewDeath;
                         self.sceneOffset = new Vector2(-10f, 100f);
                         self.slugcatDepth = 3.1000001f;
-
                     }
 
+
                 }
+                else // Client
+                {
+                    sceneID = Menu.MenuScene.SceneID.Intro_6_7_Rain_Drop; // TODO: Retrieve current save's region
+                    self.sceneOffset = new Vector2(-10f, 100f);
+                    self.slugcatDepth = 3.1000001f;
+
+                }
+
+
 
             });
         }

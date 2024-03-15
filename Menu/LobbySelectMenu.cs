@@ -236,6 +236,13 @@ namespace RainMeadow
                 return;
 
             }
+
+            if (!ModManager.MSC)
+            {
+                ShowErrorDialog("You must enable More Slugcats to play this version online");
+                return;
+
+            }
             if (currentlySelectedCard == 0)
             {
                 ShowLoadingDialog("Creating lobby...");

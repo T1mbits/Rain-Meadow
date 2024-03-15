@@ -22,6 +22,13 @@ namespace RainMeadow
             public static SlugcatStats.Name OnlineStoryWhite = new("OnlineStoryWhite", true);
             public static SlugcatStats.Name OnlineStoryYellow = new("OnlineStoryYellow", true);
             public static SlugcatStats.Name OnlineStoryRed = new("OnlineStoryRed", true);
+            public static SlugcatStats.Name OnlineStoryArtificer = new("OnlineStoryArtificer", true);
+            public static SlugcatStats.Name OnlineStorySpearmaster = new("OnlineStorySpearmaster", true);
+            public static SlugcatStats.Name OnlineStoryRivulet = new("OnlineStoryRivulet", true);
+            public static SlugcatStats.Name OnlineStorySaint = new("OnlineStorySaint", true);
+            public static SlugcatStats.Name OnlineStorySofanthiel = new("OnlineStorySofanthiel", true);
+            public static SlugcatStats.Name OnlineStoryGourmand = new("OnlineStoryGourmand", true);
+
 
         }
 
