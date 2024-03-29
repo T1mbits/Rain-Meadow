@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEngine;
 using HUD;
+using IL.MoreSlugcats;
 
 namespace RainMeadow
 {
@@ -293,8 +294,36 @@ namespace RainMeadow
             var origSaveState = orig(self, saveStateNumber, game, setup, saveAsDeathOrQuit);
             if (isStoryMode(out var gameMode))
             {
-                //self.currentSaveState.LoadGame(gameMode.saveStateProgressString, game); //pretty sure we can just stuff the string here
                 var storyClientSettings = gameMode.clientSettings as StoryClientSettings;
+
+                if (self.currentSaveState != null)
+                {
+                    RainMeadow.Debug("Save state is not null! Loading from save");
+
+                    return self.currentSaveState;
+                }
+
+                if (origSaveState.cycleNumber == 0 && gameMode.currentCampaign == Ext_SlugcatStatsName.OnlineStoryWhite)
+                {
+                    storyClientSettings.myLastDenPos = "SU_C04";
+                }
+                
+                if (origSaveState.cycleNumber == 20 && gameMode.currentCampaign == Ext_SlugcatStatsName.OnlineStoryRed)
+                {
+                    storyClientSettings.myLastDenPos = "LF_H01";
+                }
+
+                if (ModManager.MMF)
+                {
+                    if ((origSaveState.cycleNumber == MoreSlugcats.MMF.cfgHunterCycles.Value && gameMode.currentCampaign == Ext_SlugcatStatsName.OnlineStoryRed))
+                    {
+                        storyClientSettings.myLastDenPos = "LF_H01";
+
+                    }
+                }
+
+
+
                 origSaveState.denPosition = storyClientSettings.myLastDenPos;
                 return origSaveState;
             }

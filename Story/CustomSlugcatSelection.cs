@@ -41,7 +41,6 @@ namespace RainMeadow
                 this.mainLabel.label.color = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey);
 
             }
-            var pain = new Rectangle();
            
             this.infoLabel = new MenuLabel(storyCustomMenu, this, slugDesc.Item2, new Vector2(-1000f, this.imagePos.y - 268f - 40f), new Vector2(200f, 30f), true, null);
             this.infoLabel.label.alignment = FLabelAlignment.Center;

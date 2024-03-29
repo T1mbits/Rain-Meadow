@@ -34,6 +34,8 @@ namespace RainMeadow
         private SlugcatStats.Name currentCampaign;
         private string currentCampaignName = "";
         private MenuLabel campaignContainer;
+        private bool iWantANewGame;
+        private SimplerButton resetButton;
 
 
         private SlugcatStats.Name customSelectedSlugcat = Ext_SlugcatStatsName.OnlineStoryWhite;
@@ -51,7 +53,7 @@ namespace RainMeadow
 
             // Initial setup for slugcat menu & pages
             ssm = (SlugcatSelectMenu)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SlugcatSelectMenu));
-            sp = (SlugcatSelectMenu.SlugcatPageNewGame)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SlugcatSelectMenu.SlugcatPageNewGame));
+            sp = (SlugcatSelectMenu.SlugcatPageContinue)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SlugcatSelectMenu.SlugcatPageContinue));
             ssm.container = container;
             ssm.slugcatPages = characterPages;
             ssm.ID = ProcessManager.ProcessID.MultiplayerMenu;
@@ -60,11 +62,11 @@ namespace RainMeadow
             ssm.pages = pages;
 
 
+            iWantANewGame = false;
+
 
             ssm.slugcatColorOrder = AllSlugcats();
             sp.imagePos = new Vector2(683f, 484f);
-
-
 
             for (int j = 0; j < ssm.slugcatColorOrder.Count; j++)
             {
@@ -74,18 +76,38 @@ namespace RainMeadow
             }
 
 
+
             // Setup host / client buttons & general view
+            resetButton = new SimplerButton(this, pages[0], "RESET GAME", new Vector2(1150f, 700f), new Vector2(110f, 30f));
+
+            resetButton.OnClick += (_) =>
+            {
+                iWantANewGame = !iWantANewGame;
+                resetButton.toggled = !resetButton.toggled;
+            };
+            this.pages[0].subObjects.Add(resetButton);
+
 
             SetupMenuItems();
 
             if (OnlineManager.lobby.isOwner)
             {
 
-                this.hostStartButton = new EventfulHoldButton(this, this.pages[0], base.Translate("ENTER"), new Vector2(683f, 85f), 40f);
+
+                this.hostStartButton = new EventfulHoldButton(this, this.pages[0], base.Translate(""), new Vector2(683f, 85f), 40f);
                 this.hostStartButton.OnClick += (_) => { StartGame(); };
                 hostStartButton.buttonBehav.greyedOut = false;
                 this.pages[0].subObjects.Add(this.hostStartButton);
 
+                if (!manager.rainWorld.progression.IsThereASavedGame(ssm.slugcatPages[ssm.slugcatPageIndex].slugcatNumber))
+                {
+                    hostStartButton.menuLabel.text = "NEW GAME";
+                }
+                else
+                {
+                    hostStartButton.menuLabel.text = "CONTINUE";
+
+                }
 
                 // Previous
                 this.prevButton = new EventfulBigArrowButton(this, this.pages[0], new Vector2(345f, 50f), -1);
@@ -98,6 +120,7 @@ namespace RainMeadow
 
                     ssm.quedSideInput = Math.Max(-3, ssm.quedSideInput - 1);
                     base.PlaySound(SoundID.MENU_Next_Slugcat);
+
 
                 };
                 this.pages[0].subObjects.Add(this.prevButton);
@@ -112,8 +135,10 @@ namespace RainMeadow
                     {
                         return;
                     }
+
                     ssm.quedSideInput = Math.Min(3, ssm.quedSideInput + 1);
                     base.PlaySound(SoundID.MENU_Next_Slugcat);
+
                 };
                 this.pages[0].subObjects.Add(this.nextButton);
 
@@ -184,6 +209,7 @@ namespace RainMeadow
         private void StartGame()
         {
             RainMeadow.DebugMe();
+
             if (!OnlineManager.lobby.isOwner) // I'm a client
             {
                 if (ModManager.MMF)
@@ -204,14 +230,40 @@ namespace RainMeadow
             else //I'm the host
             {
                 personaSettings.playingAs = ssm.slugcatPages[ssm.slugcatPageIndex].slugcatNumber;
-                (OnlineManager.lobby.gameMode as StoryGameMode).currentCampaign = ssm.slugcatPages[ssm.slugcatPageIndex].slugcatNumber; // I decide the campaign
+                (OnlineManager.lobby.gameMode as StoryGameMode).currentCampaign = ssm.slugcatPages[ssm.slugcatPageIndex].slugcatNumber; // I decide the campaign    
+
             }
 
-
             manager.arenaSitting = null;
-            manager.rainWorld.progression.ClearOutSaveStateFromMemory();
-            manager.menuSetup.startGameCondition = ProcessManager.MenuSetup.StoryGameInitCondition.New;
             manager.RequestMainProcessSwitch(ProcessManager.ProcessID.Game);
+
+            // Make this shared to clients and share a hostDenLocation
+            if (iWantANewGame)
+            {
+
+                // manager.rainWorld.progression.ClearOutSaveStateFromMemory();
+               
+                manager.menuSetup.startGameCondition = ProcessManager.MenuSetup.StoryGameInitCondition.New;
+                if (isStoryMode(out var gameMode))
+                {
+                    if (gameMode.currentCampaign == Ext_SlugcatStatsName.OnlineStoryWhite)
+                    {
+                        manager.rainWorld.progression.currentSaveState.denPosition = "SU_C04";
+                    }
+
+                    if (gameMode.currentCampaign == Ext_SlugcatStatsName.OnlineStoryRed)
+                    {
+                        manager.rainWorld.progression.currentSaveState.denPosition = "LF_H01";
+                    }
+
+                }
+            }
+            else
+            {
+                manager.menuSetup.startGameCondition = ProcessManager.MenuSetup.StoryGameInitCondition.Load;
+
+            }
+
         }
 
 
@@ -225,9 +277,24 @@ namespace RainMeadow
 
             ssm.lastScroll = ssm.scroll;
             ssm.scroll = ssm.NextScroll;
+
             if (Mathf.Abs(ssm.lastScroll) > 0.5f && Mathf.Abs(ssm.scroll) <= 0.5f)
             {
+                if (OnlineManager.lobby.isOwner)
+                {
+                    if (!manager.rainWorld.progression.IsThereASavedGame(ssm.slugcatPages[ssm.slugcatPageIndex].slugcatNumber))
+                    {
+
+                        hostStartButton.menuLabel.text = "NEW GAME";
+                    }
+                    else
+                    {
+                        hostStartButton.menuLabel.text = "CONTINUE";
+
+                    }
+                }
                 this.UpdateCharacterUI();
+
             }
 
             if (!OnlineManager.lobby.isOwner)
@@ -327,6 +394,11 @@ namespace RainMeadow
 
             // Player lobby label
             this.pages[0].subObjects.Add(new MenuLabel(this, mainPage, this.Translate("LOBBY"), new Vector2(194, 553), new(110, 30), true));
+
+
+
+
+
 
             if (rainMeadowOptions.SlugcatCustomToggle.Value && !OnlineManager.lobby.isOwner)
             {
