@@ -503,18 +503,18 @@ namespace RainMeadow
                 }
 
                 playerClassButtons[k] = new SimplerButton(mm, pages[0], name, new Vector2(600f + k * num3, 500f) + new Vector2(106f, -60f) - new Vector2((num3 - 120f) * playerClassButtons.Length, 40f), new Vector2(num - 20f, 30f));
-                playerClassButtons[k].OnClick += (_) =>
+                playerClassButtons[0].OnClick += (_) =>
                 {
 
                     RainMeadow.Debug("hello" + k);
                     RainMeadow.Debug(mm.GetArenaSetup.playerClass[k]);
 
-                    /*                    mm.GetArenaSetup.playerClass[k] = mm.NextClass(mm.GetArenaSetup.playerClass[k]);
-                                        playerClassButtons[k].menuLabel.text = OnlineManager.players[k].id.name;
+                    mm.GetArenaSetup.playerClass[0] = mm.NextClass(mm.GetArenaSetup.playerClass[0]);
+                    playerClassButtons[0].menuLabel.text = OnlineManager.players[0].id.name;
 
-                                        playerJoinButtons[k].portrait.fileName = mm.ArenaImage(mm.GetArenaSetup.playerClass[k], k);
-                                        playerJoinButtons[k].portrait.LoadFile();
-                                        playerJoinButtons[k].portrait.sprite.SetElementByName(playerJoinButtons[k].portrait.fileName);*/
+                    playerJoinButtons[0].portrait.fileName = mm.ArenaImage(mm.GetArenaSetup.playerClass[k], k);
+                    playerJoinButtons[0].portrait.LoadFile();
+                    playerJoinButtons[0].portrait.sprite.SetElementByName(playerJoinButtons[0].portrait.fileName);
                     PlaySound(SoundID.MENU_Button_Standard_Button_Pressed);
 
                 };
