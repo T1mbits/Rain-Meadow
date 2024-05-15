@@ -13,8 +13,59 @@ namespace RainMeadow
             On.Creature.Violence += CreatureOnViolence;
             On.Creature.Grasp.ctor += GraspOnctor;
             On.PhysicalObject.Grabbed += PhysicalObjectOnGrabbed;
+            On.Spear.HitSomething += Spear_HitSomething;
             On.PhysicalObject.HitByWeapon += PhysicalObject_HitByWeapon;
             On.PhysicalObject.HitByExplosion += PhysicalObject_HitByExplosion;
+        }
+
+        private bool Spear_HitSomething(On.Spear.orig_HitSomething orig, Spear self, SharedPhysics.CollisionResult result, bool eu)
+        {
+
+            if (OnlineManager.lobby == null)
+            {
+                return orig(self, result, eu);
+
+            }
+
+            if (!RoomSession.map.TryGetValue(self.room.abstractRoom, out var room))
+            {
+                Error("Error getting room for spear!");
+
+            }
+            if (!room.isOwner && OnlineManager.lobby.gameMode is ArenaCompetitiveGameMode)
+            {
+
+
+                if (!OnlinePhysicalObject.map.TryGetValue(self.abstractPhysicalObject, out var spear))
+
+                {
+                    Error("Error getting online spear");
+                    
+                }
+
+                if (result.obj == null)
+                {
+                    return false;
+                }
+
+                if (!OnlinePhysicalObject.map.TryGetValue(result.obj.abstractPhysicalObject, out var objectHit))
+
+                {
+                    Error("Error getting target of spear object hit");
+
+                }
+
+
+                if (spear != null)
+                {
+                    if (!room.owner.OutgoingEvents.Any(e => e is RPCEvent rpc && rpc.IsIdentical(RPCs.SpearHitSomething, spear, objectHit, result.hitSomething, result.collisionPoint, eu)))
+                    {
+                        room.owner.InvokeRPC(RPCs.SpearHitSomething, spear, objectHit, result.hitSomething, result.collisionPoint, eu);
+                    }
+                }
+            }
+            return orig(self, result, eu);
+
         }
 
         private void PhysicalObject_HitByExplosion(On.PhysicalObject.orig_HitByExplosion orig, PhysicalObject self, float hitFac, Explosion explosion, int hitChunk)
@@ -25,15 +76,42 @@ namespace RainMeadow
                 return;
             }
 
-            RoomSession.map.TryGetValue(self.room.abstractRoom, out var room);
+            // explosion.room is the most stable source of truth for room data. Other options sometimes null ref
+            if (!RoomSession.map.TryGetValue(explosion.room.abstractRoom, out var room))
+            {
+                Error("Error getting room for explosion!");
+
+            }
             if (!room.isOwner && OnlineManager.lobby.gameMode is StoryGameMode)
             {
-                OnlinePhysicalObject.map.TryGetValue(self.abstractPhysicalObject, out var objectHit);
+                if (!OnlinePhysicalObject.map.TryGetValue(self.abstractPhysicalObject, out var objectHit))
+                {
+                    Error("Error getting target of explosion object hit");
+
+                }
+                if (!OnlinePhysicalObject.map.TryGetValue(explosion.sourceObject.abstractPhysicalObject, out var sourceObject))
+                {
+                    Error("Error getting source object for explosion");
+                }
+
+                if (explosion.killTagHolder == null)
+                {
+                    orig(self, hitFac, explosion, hitChunk); // Safely kills target when explosive spear is stuck in them stuck in them.
+                    return;
+                }
+
+
+                if (!OnlinePhysicalObject.map.TryGetValue(explosion.killTagHolder.abstractPhysicalObject, out var onlineCreature)) // to pass OnlinePhysicalObject data to convert to OnlineCreature over the wire
+                {
+
+                    Error("Error getting kill tag holder");
+                }
+
                 if (objectHit != null)
                 {
-                    if (!room.owner.OutgoingEvents.Any(e => e is RPCEvent rpc && rpc.IsIdentical(OnlinePhysicalObject.HitByExplosion, objectHit, hitFac)))
+                    if (!room.owner.OutgoingEvents.Any(e => e is RPCEvent rpc && rpc.IsIdentical(OnlinePhysicalObject.HitByExplosion, objectHit, sourceObject, explosion.pos, explosion.lifeTime, explosion.rad, explosion.force, explosion.damage, explosion.stun, explosion.deafen, onlineCreature, explosion.killTagHolderDmgFactor, explosion.minStun, explosion.backgroundNoise, hitFac, hitChunk)))
                     {
-                        room.owner.InvokeRPC(OnlinePhysicalObject.HitByExplosion, objectHit, hitFac);
+                        room.owner.InvokeRPC(OnlinePhysicalObject.HitByExplosion, objectHit, sourceObject, explosion.pos, explosion.lifeTime, explosion.rad, explosion.force, explosion.damage, explosion.stun, explosion.deafen, onlineCreature, explosion.killTagHolderDmgFactor, explosion.minStun, explosion.backgroundNoise, hitFac, hitChunk);
                     }
                 }
             }
@@ -48,6 +126,7 @@ namespace RainMeadow
                 orig(self, weapon);
                 return;
             }
+
 
             RoomSession.map.TryGetValue(self.room.abstractRoom, out var room);
             if (!room.isOwner && OnlineManager.lobby.gameMode is StoryGameMode)
@@ -165,6 +244,7 @@ namespace RainMeadow
                     {
                         RainMeadow.Debug("prevent abstract creature destroy: " + self); // need this so that we don't release the world session on death
                         self.Die();
+                       
                     }
                 }
             }
@@ -234,16 +314,16 @@ namespace RainMeadow
                     }
                     if ((onlineTrueVillain.owner.isMe || onlineTrueVillain.isPending) && !onlineVictim.owner.isMe) // I'm violencing a remote entity
                     {
-                        OnlinePhysicalObject onlineVillain = null;
-                        if (source != null && !OnlinePhysicalObject.map.TryGetValue(source.owner.abstractPhysicalObject, out onlineVillain))
+                        if (source != null && !OnlinePhysicalObject.map.TryGetValue(source.owner.abstractPhysicalObject, out var _))
                         {
                             Error($"Source {source.owner} - {source.owner.abstractPhysicalObject.ID} doesn't exist in online space!");
                             orig(self, source, directionandmomentum, hitchunk, hitappendage, type, damage, stunbonus);
                             return;
                         }
                         // Notify entity owner of violence
-                        (onlineVictim as OnlineCreature).RPCCreatureViolence(onlineVillain, hitchunk?.index, hitappendage, directionandmomentum, type, damage, stunbonus);
-                        return; // Remote is gonna handle this
+                        (onlineVictim as OnlineCreature).RPCCreatureViolence(onlineTrueVillain, hitchunk?.index, hitappendage, directionandmomentum, type, 1000000, stunbonus);
+                        return;
+
                     }
                     if (!onlineTrueVillain.owner.isMe) return; // Remote entity will send an event
                 }
