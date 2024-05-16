@@ -138,6 +138,17 @@ namespace RainMeadow
         }
 
         [RPCMethod]
+        public static void SpearHitSomething(OnlinePhysicalObject objectHitting, OnlinePhysicalObject objectHit, bool hitSomething, UnityEngine.Vector2 collisionPoint, bool eu)
+        {
+            var realizedObject = objectHitting.apo.realizedObject;
+            var realizedObjectHit = objectHit?.apo.realizedObject;
+
+            var result = new SharedPhysics.CollisionResult(realizedObjectHit, null, null, hitSomething, collisionPoint);
+            (realizedObject as Spear).HitSomething(result, eu);
+
+        }
+
+        [RPCMethod]
         public static void AddShortCutVessel(RWCustom.IntVector2 pos, OnlinePhysicalObject crit, RoomSession roomSess, int wait)
         {
 
@@ -146,7 +157,7 @@ namespace RainMeadow
             {
                 return;
             }
-            var creature = (crit.apo.realizedObject as Creature);
+            var creature = (crit?.apo.realizedObject as Creature); // Null reffs vessel, but the RPC works so there's that. Added a '?' so maybe that'll help
             var room = roomSess.absroom.world;
             var roomPos = room.GetAbstractRoom(0);
             var shortCutVessel = new ShortcutHandler.ShortCutVessel(pos, creature, roomPos, wait);
