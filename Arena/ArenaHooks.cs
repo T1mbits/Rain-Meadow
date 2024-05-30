@@ -138,7 +138,7 @@ namespace RainMeadow
             self.thisFrameActivePlayers = OnlineManager.players.Count;
             if (isArenaMode(out var arena))
             {
-                arena.arenaClientSettings.isDead = false;
+                arena.arenaClientSettings.inGame = true;
             }
 
 
