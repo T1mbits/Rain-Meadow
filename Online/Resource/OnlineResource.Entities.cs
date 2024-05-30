@@ -152,7 +152,7 @@ namespace RainMeadow
             }
             else if (entityJoinResult is GenericResult.Error) // retry
             {
-                RequestJoinEntity(oe);
+                // RequestJoinEntity(oe); todo: retry
             }
         }
 

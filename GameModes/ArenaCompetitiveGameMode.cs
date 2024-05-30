@@ -39,6 +39,20 @@ namespace RainMeadow
             return true;
         }
 
+/*        public override AbstractCreature SpawnAvatar(RainWorldGame game, WorldCoordinate location)
+        {
+            var settings = (clientSettings as ArenaClientSettings);
+            var abstractCreature = new AbstractCreature(game.world, StaticWorld.GetCreatureTemplate("Slugcat"), null, location, new EntityID(-1, 0));
+
+            abstractCreature.state = new PlayerState(abstractCreature, 0, settings.playingAs, false);
+            game.session.AddPlayer(abstractCreature);
+
+
+            game.world.GetAbstractRoom(abstractCreature.pos.room).AddEntity(abstractCreature);
+
+            return abstractCreature;
+        }
+*/
 
         internal override void PlayerLeftLobby(OnlinePlayer player)
         {
@@ -79,6 +93,11 @@ namespace RainMeadow
             }
 
 
+        }
+
+        internal override void LobbyTick(uint tick)
+        {
+            base.LobbyTick(tick);
         }
 
     }

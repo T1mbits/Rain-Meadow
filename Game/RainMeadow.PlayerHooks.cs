@@ -1,3 +1,4 @@
+using RainMeadow.GameModes;
 using System;
 
 namespace RainMeadow;
@@ -22,6 +23,7 @@ public partial class RainMeadow
 
         On.AbstractCreature.ctor += AbstractCreature_ctor;
     }
+
 
     private void KarmaFlower_BitByPlayer(On.KarmaFlower.orig_BitByPlayer orig, KarmaFlower self, Creature.Grasp grasp, bool eu)
     {
@@ -187,7 +189,7 @@ public partial class RainMeadow
             orig(self);
             return;
         }
-        if (!onlineEntity.isMine) return;
+        if (!onlineEntity.isMine) return; 
         if (isStoryMode(out var story))
         {
             story.storyClientSettings.isDead = true;
@@ -214,14 +216,15 @@ public partial class RainMeadow
         {
             slugcat = (storyGameMode.clientSettings as StoryClientSettings).playingAs;
         }
+
+        if (isArenaMode(out var arenaGameMode))
+        {
+            slugcat = (arenaGameMode.clientSettings as ArenaClientSettings).playingAs;
+        }
         orig(self, slugcat, malnourished);
 
         if (OnlineManager.lobby == null) return;
         if (slugcat != Ext_SlugcatStatsName.OnlineSessionPlayer && slugcat != Ext_SlugcatStatsName.OnlineSessionRemotePlayer) return;
 
-        if (OnlineManager.lobby.gameMode is ArenaCompetitiveGameMode or FreeRoamGameMode)
-        {
-            self.throwingSkill = 1;
-        }
     }
 }

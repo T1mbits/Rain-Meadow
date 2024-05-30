@@ -218,7 +218,7 @@ namespace RainMeadow
                     }
                 }
             }
-            
+
             else if (RainMeadow.isArenaMode(out var _))
             {
                 WaitingForState();
@@ -246,22 +246,19 @@ namespace RainMeadow
             if (pendingRequest == releaseResult.referencedEvent) pendingRequest = null;
             else RainMeadow.Error($"Weird event situation, pending is {pendingRequest} and referenced is {releaseResult.referencedEvent}");
 
+
+            if (RainMeadow.isArenaMode(out var _))
+            {
+                // Helps with items in multiplayer leaving room
+                this.Unavailable();
+            }
+
+
             if (releaseResult is GenericResult.Ok) // I've let go
             {
                 Unavailable();
             }
 
-            if (RainMeadow.isArenaMode(out var _))
-            {
-
-                if (this.isAvailable)
-                {
-
-                    Unavailable();
-                }
-
-
-            }
             else if (releaseResult is GenericResult.Error) // I should retry
             {
                 RainMeadow.Error("released failed for " + this);

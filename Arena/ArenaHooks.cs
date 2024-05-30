@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RainMeadow.GameModes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -32,11 +33,31 @@ namespace RainMeadow
             On.ArenaBehaviors.Evilifier.Update += Evilifier_Update;
             On.ArenaBehaviors.RespawnFlies.Update += RespawnFlies_Update;
             On.ArenaBehaviors.ArenaGameBehavior.Update += ArenaGameBehavior_Update;
-
-
+            On.Spear.Update += Spear_Update;
             On.Menu.ArenaOverlay.Update += ArenaOverlay_Update;
             On.Menu.ArenaOverlay.PlayerPressedContinue += ArenaOverlay_PlayerPressedContinue;
+          
         }
+
+        private void Spear_Update(On.Spear.orig_Update orig, Spear self, bool eu)
+        {
+            if (OnlineManager.lobby == null)
+            {
+                orig(self, eu);
+            }
+
+            if (RainMeadow.isArenaMode(out var _))
+            {
+                if (self == null)
+                {
+                    RainMeadow.Debug("Creature fell off map with spear in them");
+                    return;
+                }
+
+                orig(self, eu);
+            }
+        }
+
         private bool ExitManager_PlayerTryingToEnterDen(On.ArenaBehaviors.ExitManager.orig_PlayerTryingToEnterDen orig, ArenaBehaviors.ExitManager self, ShortcutHandler.ShortCutVessel shortcutVessel)
         {
 
@@ -115,6 +136,10 @@ namespace RainMeadow
 
             orig(self, game);
             self.thisFrameActivePlayers = OnlineManager.players.Count;
+            if (isArenaMode(out var arena))
+            {
+                arena.arenaClientSettings.isDead = false;
+            }
 
 
 
@@ -224,6 +249,7 @@ namespace RainMeadow
                     if (playerAvatar.FindEntity(true) is OnlinePhysicalObject opo && opo.apo is AbstractCreature ac && !self.Players.Contains(ac))
                     {
                         self.Players.Add(ac);
+
                     }
 
                 }
@@ -368,13 +394,15 @@ namespace RainMeadow
 
                 array[num]++;
 
-                AbstractCreature abstractCreature = new AbstractCreature(self.game.world, StaticWorld.GetCreatureTemplate("Slugcat"), null, new WorldCoordinate(0, -1, -1, -1), new EntityID(-1, list[l].playerNumber));
+                AbstractCreature abstractCreature = new AbstractCreature(self.game.world, StaticWorld.GetCreatureTemplate("Slugcat"), null, new WorldCoordinate(0, -1, -1, -1), new EntityID(-1, 0));
 
                 AbstractRoom_Arena_MoveEntityToDen(self.game.world, abstractCreature.Room, abstractCreature); // Arena adds abstract creature then realizes it later
                 SetOnlineCreature(abstractCreature);
+              
                 if (OnlineManager.lobby.isActive)
                 {
                     OnlineManager.instance.Update(); // Subresources are active, gamemode is online, ticks are happening. Not sure why we'd need this here
+
                 }
 
 
@@ -390,6 +418,8 @@ namespace RainMeadow
                 else
                 {
                     abstractCreature.state = new PlayerState(abstractCreature, list[l].playerNumber, new SlugcatStats.Name(ExtEnum<SlugcatStats.Name>.values.GetEntry(list[l].playerNumber)), isGhost: false);
+                   
+
                 }
 
 

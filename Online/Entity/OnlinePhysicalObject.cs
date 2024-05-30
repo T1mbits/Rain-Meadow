@@ -40,8 +40,6 @@ namespace RainMeadow
             }
 
             var opoDef = new OnlinePhysicalObjectDefinition(apo.ID.RandomSeed, apo.realizedObject != null, apo.ToString(), entityId, OnlineManager.mePlayer, !RainMeadow.sSpawningAvatar);
-            RainMeadow.Debug("ONLINE PHYS OBJ DEF: " + opoDef);
-
 
             switch (apo)
             {
@@ -316,14 +314,25 @@ namespace RainMeadow
         }
 
         [RPCMethod]
-        public static void HitByWeapon(OnlinePhysicalObject objectHit, OnlinePhysicalObject weapon)
+        public static void HitByWeapon(OnlinePhysicalObject objectHit, OnlinePhysicalObject abstWeapon)
         {
-            objectHit?.apo.realizedObject.HitByWeapon(weapon.apo.realizedObject as Weapon);
+            var target = (objectHit.apo.realizedObject);
+            var weapon = (abstWeapon.apo.realizedObject as Weapon);
+
+            target?.HitByWeapon(weapon);
+
         }
         [RPCMethod]
-        public static void HitByExplosion(OnlinePhysicalObject objectHit, float hitfac)
+        public static void HitByExplosion(OnlinePhysicalObject objectHit, OnlinePhysicalObject sourceObject, UnityEngine.Vector2 pos, int lifeTime, float rad, float force, float damage, float stun, float deafen, OnlinePhysicalObject killTagHolder, float killTagHolderDmgFactor, float minStun, float backgroundNoise, float hitfac, int hitChunk)
         {
-            objectHit?.apo.realizedObject.HitByExplosion(hitfac, null, 0);
+            var source = (sourceObject?.apo.realizedObject);
+            // can null ref but wont kill game
+            var creature = (killTagHolder.apo as AbstractCreature).realizedCreature;
+            var room = (objectHit.apo.Room.realizedRoom);
+            var explosion = new Explosion(room, source, pos, lifeTime, rad, force, damage, stun, deafen, creature, killTagHolderDmgFactor, minStun, backgroundNoise);
+
+            objectHit.apo.realizedObject.HitByExplosion(hitfac, explosion, hitChunk);
+
         }
     }
 }

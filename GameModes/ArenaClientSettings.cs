@@ -19,13 +19,16 @@ namespace RainMeadow.GameModes
 
         public Color bodyColor;
         public Color eyeColor;
-
+        public SlugcatStats.Name playingAs;
+        public bool inGame;
 
         public ArenaClientSettings(Definition entityDefinition) : base(entityDefinition)
         {
             RainMeadow.Debug(this);
             bodyColor = entityDefinition.owner == 2 ? Color.white : PlayerGraphics.DefaultSlugcatColor(SlugcatStats.Name.White);
             eyeColor = Color.black;
+            playingAs = SlugcatStats.Name.White;
+            
 
         }
 
@@ -50,12 +53,18 @@ namespace RainMeadow.GameModes
             public Color bodyColor;
             [OnlineFieldColorRgb]
             public Color eyeColor;
+            [OnlineField]
+            public SlugcatStats.Name playingAs;
+            [OnlineField(group = "game")]
+            public bool inGame;
 
             public State() { }
             public State(ArenaClientSettings onlineEntity, OnlineResource inResource, uint ts) : base(onlineEntity, inResource, ts)
             {
                 bodyColor = onlineEntity.bodyColor;
                 eyeColor = onlineEntity.eyeColor;
+                playingAs = onlineEntity.playingAs;
+                inGame = onlineEntity.inGame;
 
             }
 
@@ -65,6 +74,8 @@ namespace RainMeadow.GameModes
                 var avatarSettings = (ArenaClientSettings)onlineEntity;
                 avatarSettings.bodyColor = bodyColor;
                 avatarSettings.eyeColor = eyeColor;
+                avatarSettings.playingAs = playingAs;
+                avatarSettings.inGame = inGame;
 
             }
         }

@@ -13,61 +13,11 @@ namespace RainMeadow
             On.Creature.Violence += CreatureOnViolence;
             On.Creature.Grasp.ctor += GraspOnctor;
             On.PhysicalObject.Grabbed += PhysicalObjectOnGrabbed;
-            On.Spear.HitSomething += Spear_HitSomething;
+
+
             On.PhysicalObject.HitByWeapon += PhysicalObject_HitByWeapon;
             On.PhysicalObject.HitByExplosion += PhysicalObject_HitByExplosion;
         }
-
-        private bool Spear_HitSomething(On.Spear.orig_HitSomething orig, Spear self, SharedPhysics.CollisionResult result, bool eu)
-        {
-
-            if (OnlineManager.lobby == null)
-            {
-                return orig(self, result, eu);
-
-            }
-
-            if (!RoomSession.map.TryGetValue(self.room.abstractRoom, out var room))
-            {
-                Error("Error getting room for spear!");
-
-            }
-            if (!room.isOwner && OnlineManager.lobby.gameMode is ArenaCompetitiveGameMode)
-            {
-
-
-                if (!OnlinePhysicalObject.map.TryGetValue(self.abstractPhysicalObject, out var spear))
-
-                {
-                    Error("Error getting online spear");
-                    
-                }
-
-                if (result.obj == null)
-                {
-                    return false;
-                }
-
-                if (!OnlinePhysicalObject.map.TryGetValue(result.obj.abstractPhysicalObject, out var objectHit))
-
-                {
-                    Error("Error getting target of spear object hit");
-
-                }
-
-
-                if (spear != null)
-                {
-                    if (!room.owner.OutgoingEvents.Any(e => e is RPCEvent rpc && rpc.IsIdentical(RPCs.SpearHitSomething, spear, objectHit, result.hitSomething, result.collisionPoint, eu)))
-                    {
-                        room.owner.InvokeRPC(RPCs.SpearHitSomething, spear, objectHit, result.hitSomething, result.collisionPoint, eu);
-                    }
-                }
-            }
-            return orig(self, result, eu);
-
-        }
-
         private void PhysicalObject_HitByExplosion(On.PhysicalObject.orig_HitByExplosion orig, PhysicalObject self, float hitFac, Explosion explosion, int hitChunk)
         {
             if (OnlineManager.lobby == null)
@@ -119,6 +69,12 @@ namespace RainMeadow
             orig(self, hitFac, explosion, hitChunk);
         }
 
+        // TODO: What ever the solution is, it needs to encapuslate damage dealt to Slugcats so I don't have to hook each one. Maybe it's under Physical Object, but need to figure out why damage is not being assigned to the player
+        // The RPC is delivering data
+        // Players can hurt other animals
+        // Meadow isn't bleeding logic
+        // Players deal 1 damage
+        // It feels like we're doing a return somewhere for no baffling reason. Only on other players
         private void PhysicalObject_HitByWeapon(On.PhysicalObject.orig_HitByWeapon orig, PhysicalObject self, Weapon weapon)
         {
             if (OnlineManager.lobby == null)
@@ -127,7 +83,6 @@ namespace RainMeadow
                 return;
             }
 
-
             RoomSession.map.TryGetValue(self.room.abstractRoom, out var room);
             if (!room.isOwner && OnlineManager.lobby.gameMode is StoryGameMode)
             {
@@ -135,10 +90,10 @@ namespace RainMeadow
                 OnlinePhysicalObject.map.TryGetValue(weapon.abstractPhysicalObject, out var abstWeapon);
                 room.owner.InvokeRPC(OnlinePhysicalObject.HitByWeapon, objectHit, abstWeapon);
             }
-            else
-            {
-                orig(self, weapon);
-            }
+
+            orig(self, weapon);
+
+
         }
 
         private void ShelterDoorOnClose(On.ShelterDoor.orig_Close orig, ShelterDoor self)
@@ -180,6 +135,7 @@ namespace RainMeadow
         private void CreatureOnUpdate(On.Creature.orig_Update orig, Creature self, bool eu)
         {
             orig(self, eu);
+
             if (OnlineManager.lobby == null) return;
             if (!OnlinePhysicalObject.map.TryGetValue(self.abstractPhysicalObject, out var onlineCreature))
             {
@@ -244,6 +200,7 @@ namespace RainMeadow
                     {
                         RainMeadow.Debug("prevent abstract creature destroy: " + self); // need this so that we don't release the world session on death
                         self.Die();
+                        self.abstractPhysicalObject.LoseAllStuckObjects();
                         self.State.alive = false;
                     }
                 }
@@ -286,6 +243,9 @@ namespace RainMeadow
 
         private void CreatureOnViolence(On.Creature.orig_Violence orig, Creature self, BodyChunk source, Vector2? directionandmomentum, BodyChunk hitchunk, PhysicalObject.Appendage.Pos hitappendage, Creature.DamageType type, float damage, float stunbonus)
         {
+
+            // TODO:
+            // MakeState would manage the entity states. It's possible there's an issue with this updating? Manually making a creature dead is not sync'd.
             if (OnlineManager.lobby == null)
             {
                 orig(self, source, directionandmomentum, hitchunk, hitappendage, type, damage, stunbonus);
@@ -314,15 +274,25 @@ namespace RainMeadow
                     }
                     if ((onlineTrueVillain.owner.isMe || onlineTrueVillain.isPending) && !onlineVictim.owner.isMe) // I'm violencing a remote entity
                     {
-                        if (source != null && !OnlinePhysicalObject.map.TryGetValue(source.owner.abstractPhysicalObject, out var _))
+                        if (source != null && !OnlinePhysicalObject.map.TryGetValue(source.owner.abstractPhysicalObject, out var weapon))
                         {
                             Error($"Source {source.owner} - {source.owner.abstractPhysicalObject.ID} doesn't exist in online space!");
                             orig(self, source, directionandmomentum, hitchunk, hitappendage, type, damage, stunbonus);
                             return;
                         }
                         // Notify entity owner of violence
-                        (onlineVictim as OnlineCreature).RPCCreatureViolence(onlineTrueVillain, hitchunk?.index, hitappendage, directionandmomentum, type, 1000000, stunbonus);
-                        return;
+
+                        Debug("DAMAGE " + damage + "FROM " + onlineTrueVillain +  "TO " + onlineVictim + "WITH " + type);
+
+
+                        if (!onlineTrueVillain.owner.OutgoingEvents.Any(e => e is RPCEvent rpc && rpc.IsIdentical(OnlineCreature.CreatureViolence, onlineVictim, onlineTrueVillain, hitchunk?.index, hitappendage == null ? null : new AppendageRef(hitappendage), directionandmomentum, type, damage, stunbonus)))
+                        {
+                            onlineTrueVillain.owner.InvokeRPC(OnlineCreature.CreatureViolence, onlineVictim, onlineTrueVillain, hitchunk?.index, hitappendage == null ? null : new AppendageRef(hitappendage), directionandmomentum, type, damage, stunbonus);
+                        }
+                        /*
+                                                    onlineTrueVillain.owner.InvokeRPC(OnlineCreature.CreatureViolence, onlineVictim, onlineTrueVillain, hitchunk?.index, hitappendage == null ? null : new AppendageRef(hitappendage), directionandmomentum, type, damage, stunbonus);
+                                                    return;
+                                                }*/
 
                     }
                     if (!onlineTrueVillain.owner.isMe) return; // Remote entity will send an event

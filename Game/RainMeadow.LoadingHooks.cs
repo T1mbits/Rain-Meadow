@@ -24,7 +24,6 @@ namespace RainMeadow
             {
                 ArenaGameSession getArenaGameSession = (manager.currentMainLoop as RainWorldGame).GetArenaGameSession;
 
-
                 if (manager.currentMainLoop is RainWorldGame)
                 {
 
@@ -98,14 +97,19 @@ namespace RainMeadow
 
                                 room.RemoveObject(oe.apo.realizedObject);
                                 room.CleanOutObjectNotInThisRoom(oe.apo.realizedObject);
+                                oe.apo.LoseAllStuckObjects();
                                 oe.beingMoved = false;
 
                             }
                             else // mine leave the old online world elegantly
                             {
                                 Debug("removing my entity from online " + oe);
+                                // need to check this crap. Creatures are stuck being seen as online entities and next level ends the game
                                 oe.LeaveResource(roomSession);
                                 oe.LeaveResource(roomSession.worldSession);
+
+                                
+
 
                             }
                         }
