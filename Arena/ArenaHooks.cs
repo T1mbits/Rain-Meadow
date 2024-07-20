@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace RainMeadow
@@ -37,14 +38,180 @@ namespace RainMeadow
             On.ArenaBehaviors.RespawnFlies.Update += RespawnFlies_Update;
             On.ArenaBehaviors.ArenaGameBehavior.Update += ArenaGameBehavior_Update;
             On.ArenaCreatureSpawner.SpawnArenaCreatures += ArenaCreatureSpawner_SpawnArenaCreatures;
-            
+
             On.HUD.HUD.InitMultiplayerHud += HUD_InitMultiplayerHud;
             On.Menu.ArenaOverlay.Update += ArenaOverlay_Update;
             On.Menu.ArenaOverlay.PlayerPressedContinue += ArenaOverlay_PlayerPressedContinue;
 
             On.Menu.MultiplayerResults.ctor += MultiplayerResults_ctor;
             On.Menu.MultiplayerResults.Singal += MultiplayerResults_Singal;
-            
+            On.Menu.MultiplayerMenu.Update += MultiplayerMenu_Update;
+
+            On.RainWorld.GetPlayerSigningIn += RainWorld_GetPlayerSigningIn;
+
+        }
+
+        private void MultiplayerMenu_Update(On.Menu.MultiplayerMenu.orig_Update orig, Menu.MultiplayerMenu self)
+        {
+            if (RainMeadow.isArenaMode(out var _))
+            {
+                var mm = self;
+                if (!mm.requestingControllerConnections && !mm.exiting)
+                {
+                    for (int i = 1; i < self.manager.arenaSetup.playersJoined.Length; i++)
+                    {
+                        PlayerHandler playerHandler = self.manager.rainWorld.GetPlayerHandler(i);
+                        if (playerHandler != null)
+                        {
+                            //Rewired.Player rewiredPlayer = Kittehface.Framework20.User(playerHandler.profile, i);
+                            //manager.arenaSetup.playersJoined[i] = rewiredPlayer.controllers.joystickCount > 0 || rewiredPlayer.controllers.hasKeyboard;
+                        }
+                        else
+                        {
+                            self.manager.arenaSetup.playersJoined[i] = false;
+                        }
+
+                        self.manager.rainWorld.GetPlayerSigningIn(i);
+                    }
+                }
+
+                bool flag = RWInput.CheckPauseButton(0);
+                if (flag && !mm.lastPauseButton && self.manager.dialog == null)
+                {
+                    mm.OnExit();
+                }
+
+                mm.lastPauseButton = flag;
+                mm.lastBlackFade = mm.blackFade;
+                float num = 0f;
+                if (mm.nextGameType != mm.currentGameType)
+                {
+                    num = 1f;
+                    if (mm.blackFade == 1f && mm.lastBlackFade == 1f)
+                    {
+                        mm.ClearGameTypeSpecificButtons();
+                        mm.currentGameType = mm.nextGameType;
+                        mm.InitiateGameTypeSpecificButtons();
+                    }
+                }
+
+                if (ModManager.MSC && mm.currentGameType == MoreSlugcats.MoreSlugcatsEnums.GameTypeID.Challenge && mm.levelSelector != null && mm.thumbsToBeLoaded.Count > 0)
+                {
+                    mm.levelSelector.Update();
+                }
+
+                if (mm.blackFade < num)
+                {
+                    mm.blackFade = RWCustom.Custom.LerpAndTick(mm.blackFade, num, 0.05f, 71f / (339f * (float)Math.PI));
+                }
+                else
+                {
+                    mm.blackFade = RWCustom.Custom.LerpAndTick(mm.blackFade, num, 0.05f, 0.125f);
+                }
+
+                bool flag2 = false;
+                int num2 = 0;
+                for (int j = 0; j < mm.GetArenaSetup.playersJoined.Length; j++)
+                {
+                    if (mm.GetArenaSetup.playersJoined[j])
+                    {
+                        num2++;
+                    }
+                }
+
+                if (mm.currentGameType == ArenaSetup.GameTypeID.Sandbox)
+                {
+                    mm.abovePlayButtonLabel.text = ((num2 == 0) ? self.Translate("No players joined!") : "");
+                    flag2 = true;
+                }
+                else if (num2 == 0)
+                {
+                    mm.abovePlayButtonLabel.text = self.Translate("No players joined!");
+                }
+                else if (mm.currentGameType == ArenaSetup.GameTypeID.Competitive)
+                {
+                    if (mm.levelSelector.levelsPlaylist != null && mm.levelSelector.levelsPlaylist.mismatchCounter > 20)
+                    {
+                        mm.abovePlayButtonLabel.text = self.Translate("ERROR");
+                    }
+                    else
+                    {
+                        int num3 = mm.GetGameTypeSetup.playList.Count * mm.GetGameTypeSetup.levelRepeats;
+                        if (num3 == 0)
+                        {
+                            mm.abovePlayButtonLabel.text = Regex.Replace(self.Translate("Select which levels to play<LINE>in the level selector"), "<LINE>", "\r\n");
+                        }
+                        else
+                        {
+                            int num4 = mm.ApproximatePlayTime();
+                            string text = "";
+                            switch (num3)
+                            {
+                                case 1:
+                                    text = self.Translate("ROUND SESSION");
+                                    break;
+                                case 2:
+                                case 3:
+                                case 4:
+                                    text = self.Translate("ROUNDS SESSION-ru2");
+                                    break;
+                                default:
+                                    text = self.Translate("ROUNDS SESSION");
+                                    break;
+                            }
+
+                            text = ((!text.Contains("#")) ? (num3 + " " + text) : text.Replace("#", num3.ToString()));
+                            mm.abovePlayButtonLabel.text = text + ((num4 > 0) ? ("\r\n" + self.Translate("Approximately") + " " + num4 + " " + ((num4 == 1) ? self.Translate("minute") : self.Translate("minutes"))) : "");
+                            flag2 = true;
+                        }
+                    }
+                }
+
+                mm.APBLLastSin = mm.APBLSin;
+                mm.APBLLastPulse = mm.APBLPulse;
+                if (!ModManager.MSC || mm.currentGameType == MoreSlugcats.MoreSlugcatsEnums.GameTypeID.Challenge || mm.currentGameType == MoreSlugcats.MoreSlugcatsEnums.GameTypeID.Safari)
+                {
+                    flag2 = true;
+                }
+
+                if (ModManager.MSC && mm.currentGameType == MoreSlugcats.MoreSlugcatsEnums.GameTypeID.Safari && !self.manager.rainWorld.progression.miscProgressionData.GetTokenCollected(new MultiplayerUnlocks.SafariUnlockID(ExtEnum<MultiplayerUnlocks.SafariUnlockID>.values.GetEntry(mm.GetGameTypeSetup.safariID))) && !MultiplayerUnlocks.CheckUnlockSafari())
+                {
+                    flag2 = false;
+                }
+
+                if (!flag2)
+                {
+                    mm.APBLSin += 1f;
+                    mm.APBLPulse = RWCustom.Custom.LerpAndTick(mm.APBLPulse, 1f, 0.04f, 0.025f);
+                    mm.playButton.buttonBehav.greyedOut = true;
+                }
+                else
+                {
+                    mm.APBLPulse = RWCustom.Custom.LerpAndTick(mm.APBLPulse, 0f, 0.04f, 0.025f);
+                    mm.playButton.buttonBehav.greyedOut = false;
+                }
+            } else
+            {
+
+                orig(self);
+            }
+
+        }
+
+
+        private bool RainWorld_GetPlayerSigningIn(On.RainWorld.orig_GetPlayerSigningIn orig, RainWorld self, int playerNumber)
+        {
+            if (RainMeadow.isArenaMode(out var _))
+            {
+
+                return true;
+
+            }
+            else
+            {
+
+                return orig(self, playerNumber);
+            }
         }
 
         private void MultiplayerResults_ctor(On.Menu.MultiplayerResults.orig_ctor orig, Menu.MultiplayerResults self, ProcessManager manager)
@@ -102,13 +269,15 @@ namespace RainMeadow
                     RainMeadow.Debug("Spawning creature");
 
                     orig(self);
-                } else
+                }
+                else
                 {
                     RainMeadow.Debug("Prevented client from spawning excess creatures");
                 }
 
 
-            } else
+            }
+            else
             {
                 orig(self);
             }

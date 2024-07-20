@@ -4,23 +4,31 @@ using Menu.Remix;
 using Menu.Remix.MixedUI;
 using RainMeadow.GameModes;
 using RWCustom;
+using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using Kittehface;
 
 namespace RainMeadow
 {
     public class ArenaLobbyMenu : SmartMenu
     {
         public SymbolButton infoButton;
+        public SymbolButton friendButton;
+
 
         private ArenaClientSettings personaSettings;
         private static float num = 120f;
         private static float num2 = 0f;
         private static float num3 = num - num2;
         private List<string> sharedPlayList = new List<string>();
+
+        private OpTinyColorPicker bodyColorPicker;
+        private OpTinyColorPicker eyeColorPicker;
+
 
         OpSliderTick playerCountSlider;
         UIelementWrapper playerCountWrapper;
@@ -51,6 +59,8 @@ namespace RainMeadow
             BuildLayout();
 
             BindSettings();
+
+            SetupCharacterCustomization();
 
             MatchmakingManager.instance.OnPlayerListReceived += OnlineManager_OnPlayerListReceived;
 
@@ -91,9 +101,6 @@ namespace RainMeadow
             mm.levelSelector = new LevelSelector(mm, pages[0], false);
             pages[0].subObjects.Add(mm.levelSelector);
             mm.init = true;
-
-
-
 
         }
 
@@ -142,10 +149,17 @@ namespace RainMeadow
             mm.playButton = CreateButton("START", new Vector2(ScreenWidth - 304, 50), new Vector2(110, 30), self => StartGame());
 
             infoButton = new SymbolButton(mm, pages[0], "Menu_InfoI", "INFO", new Vector2(1142f, 624f));
+            infoButton.size = new Vector2(32, 32);
             pages[0].subObjects.Add(infoButton);
+
+            friendButton = new SymbolButton(mm, pages[0], "Kill_Slugcat", "FRIENDS", new Vector2(140, 30));
+            friendButton.size = new Vector2(48, 48);
+            pages[0].subObjects.Add(friendButton);
+
 
             BuildPlayerSlots();
             AddAbovePlayText();
+
         }
 
 
@@ -162,7 +176,7 @@ namespace RainMeadow
 
             float num3 = num - num2;
 
-            playerCountSlider = new OpSliderTick(new Configurable<int>(2, new ConfigAcceptableRange<int>(1, 31)), new Vector2(710, 550), 450);
+            playerCountSlider = new OpSliderTick(new Configurable<int>(2, new ConfigAcceptableRange<int>(1, 4)), new Vector2(710, 550), 450);
             pages[0].subObjects.Add(playerCountWrapper = new UIelementWrapper(tabWrapper, playerCountSlider));
 
             AddPlayerButtons();
@@ -226,7 +240,6 @@ namespace RainMeadow
             if (OnlineManager.lobby.isOwner)
             {
                 sharedPlayList = manager.arenaSitting.levelPlaylist;
-                RainMeadow.Debug("COUNT OF HOST MAPS:" + sharedPlayList.Count);
 
             }
 
@@ -234,7 +247,6 @@ namespace RainMeadow
             else
             {
                 manager.arenaSitting.levelPlaylist = hostPlaylist;
-                RainMeadow.Debug("COUNT OF MAPS CLIENT:" + hostPlaylist.Count);
 
 
 
@@ -275,8 +287,11 @@ namespace RainMeadow
 
         public override void Update()
         {
-
+            base.Update(); // gonna be a pain
             mm.Update();
+
+
+
 
             if (mm.GetGameTypeSetup.playList.Count * mm.GetGameTypeSetup.levelRepeats > 0)
             {
@@ -316,11 +331,20 @@ namespace RainMeadow
                     }
                     else
                     {
+
+
                         mm.infoWindow = new InfoWindow(mm, sender, new Vector2(0f, 0f));
                         sender.subObjects.Add(mm.infoWindow);
                         PlaySound(SoundID.MENU_Button_Standard_Button_Pressed);
                     }
+
                     break;
+                case "FRIENDS":
+
+                    SteamFriends.ActivateGameOverlay("friends");
+
+                    break;
+
             }
 
             if (!ModManager.MSC)
@@ -366,14 +390,14 @@ namespace RainMeadow
         private void BindSettings()
         {
             this.personaSettings = (ArenaClientSettings)OnlineManager.lobby.gameMode.clientSettings;
-            personaSettings.bodyColor = UnityEngine.Random.ColorHSV(0f, 1f, 0.5f, 1f, 0.5f, 1f);
-
-            personaSettings.eyeColor = UnityEngine.Random.ColorHSV(0f, 1f, 0.5f, 1f, 0.5f, 1f);
+            personaSettings.bodyColor = Color.white;
+            personaSettings.eyeColor = Color.black;
 
         }
 
         private void AddPlayerButtons()
         {
+
             mm.GetArenaSetup.playerClass = new SlugcatStats.Name[4];
 
             for (int i = 0; i < mm.GetArenaSetup.playerClass.Length; i++)
@@ -480,6 +504,38 @@ namespace RainMeadow
                     }
 
                 }*/
+
+        private void SetupCharacterCustomization()
+        {
+            var bodyLabel = new MenuLabel(this, pages[0], Translate("Body color"), new Vector2(800, 353), new(0, 30), false); 
+            bodyLabel.label.alignment = FLabelAlignment.Right;
+            this.pages[0].subObjects.Add(bodyLabel);
+
+
+            var eyeLabel = new MenuLabel(this, pages[0], Translate("Eye color"), new Vector2(900, 353), new(0, 30), false); 
+            eyeLabel.label.alignment = FLabelAlignment.Right;
+            this.pages[0].subObjects.Add(eyeLabel);
+
+            bodyColorPicker = new OpTinyColorPicker(this, new Vector2(705, 353), "FFFFFF"); 
+            var wrapper = new UIelementWrapper(tabWrapper, bodyColorPicker);
+            bodyColorPicker.OnValueChangedEvent += Colorpicker_OnValueChangedEvent;
+
+            eyeColorPicker = new OpTinyColorPicker(this, new Vector2(810, 353), "000000");
+            var wrapper2 = new UIelementWrapper(tabWrapper, eyeColorPicker);
+            eyeColorPicker.OnValueChangedEvent += Colorpicker_OnValueChangedEvent;
+
+            pages[0].subObjects.Add(wrapper);
+            pages[0].subObjects.Add(wrapper2);
+        }
+
+        private void Colorpicker_OnValueChangedEvent()
+        {
+            if (personaSettings != null) personaSettings.bodyColor = bodyColorPicker.valuecolor;
+            if (personaSettings != null) personaSettings.eyeColor = eyeColorPicker.valuecolor;
+
+        }
+
+           
 
     }
 }
