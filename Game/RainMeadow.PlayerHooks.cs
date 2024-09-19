@@ -18,6 +18,8 @@ public partial class RainMeadow
         On.Player.Die += PlayerOnDie;
         On.Player.Grabability += PlayerOnGrabability;
         IL.Player.GrabUpdate += Player_GrabUpdate;
+        IL.Player.SwallowObject += Player_SwallowObject;
+        On.Player.Regurgitate += Player_Regurgitate;
         On.Player.AddFood += Player_AddFood;
         On.Player.AddQuarterFood += Player_AddQuarterFood;
         On.Player.SubtractFood += Player_SubtractFood;
@@ -299,6 +301,61 @@ public partial class RainMeadow
             }
         }
         return orig(self, obj);
+    }
+
+    private void Player_SwallowObject(ILContext il)
+    {
+        try
+        {
+            var c = new ILCursor(il);
+            var skip = il.DefineLabel();
+            c.GotoNext(moveType: MoveType.After,
+                i => i.MatchLdarg(0),
+                i => i.MatchLdloc(0),
+                i => i.MatchStfld<Player>("objectInStomach")
+                );
+            c.Emit(OpCodes.Ldarg_0);
+            c.EmitDelegate((Player self) =>
+            {
+                if (OnlineManager.lobby != null && OnlinePhysicalObject.map.TryGetValue(self.abstractPhysicalObject, out var oe))
+                {
+                    if (!oe.isMine)
+                    {
+                        self.objectInStomach.realizedObject.room.RemoveObject(self.objectInStomach.realizedObject);
+                        self.objectInStomach.realizedObject = null;
+                        return false;
+                    }
+                }
+                return true;
+            });
+            c.Emit(OpCodes.Brfalse, skip);
+            c.GotoNext(moveType: MoveType.After,
+                i => i.MatchLdarg(0),
+                i => i.MatchLdfld<Player>("objectInStomach"),
+                i => i.MatchLdarg(0),
+                i => i.MatchCallOrCallvirt<Creature>("get_abstractCreature"),
+                i => i.MatchLdfld<AbstractWorldEntity>("pos"),
+                i => i.MatchCallOrCallvirt<AbstractWorldEntity>("Abstractize")
+                );
+            c.MarkLabel(skip);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e);
+        }
+    }
+
+    private void Player_Regurgitate(On.Player.orig_Regurgitate orig, Player self)
+    {
+        if (OnlineManager.lobby != null)
+        {
+            if (OnlinePhysicalObject.map.TryGetValue(self.abstractPhysicalObject, out var oe)
+                && !oe.isMine)
+            {
+                return;
+            }
+        }
+        orig(self);
     }
 
     private void SlugcatStats_ctor(On.SlugcatStats.orig_ctor orig, SlugcatStats self, SlugcatStats.Name slugcat, bool malnourished)
