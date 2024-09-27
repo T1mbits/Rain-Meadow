@@ -1,5 +1,6 @@
 ﻿using HUD;
 using IL.Menu;
+using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RainMeadow.GameModes;
@@ -71,31 +72,64 @@ namespace RainMeadow
 
         private void ArenaGameSession_EndOfSessionLogPlayerAsAlive(ILContext il)
         {
+
             try
             {
                 var c = new ILCursor(il);
-                var skipLabel = il.DefineLabel();
-                c.GotoNext(
-                    x => x.MatchLdarg(0),
-                    x => x.MatchLdfld<GameSession>("Players"),
-                    x => x.MatchLdloc(1),
-                    x => x.MatchCallvirt<AbstractCreature>("get_item"),
-                    x => x.MatchLdfld<AbstractCreature>("state"),
-                    x => x.MatchIsinst<PlayerState>(),
-                    x => x.MatchLdfld<PlayerState>("playerNumber"),
-                    x => x.MatchLdarg(1),
-                    i => i.MatchBneUn(out var label));
+                ILLabel skip = null;
 
-                // Emit the jump to skipLabel to ignore the condition
-                c.Emit(OpCodes.Br, skipLabel);
+                c.GotoNext(moveType: MoveType.Before,
 
-                // Mark the skipLabel where execution should continue
-                c.MarkLabel(skipLabel);
+                i => i.MatchCallvirt<Creature>("get_abstractCreature"),
+                i => i.MatchLdfld<AbstractCreature>("state"),
+                i => i.MatchIsinst<PlayerState>(),
+                i => i.MatchLdfld<PlayerState>("playerNumber"),
+                i => i.MatchLdarg(1),
+                i => i.MatchBneUn(out skip)
+                );
+                c.MoveAfterLabels();
+                c.Emit(OpCodes.Ldarg_0);
+                c.EmitDelegate((ArenaGameSession self) =>
+                {
+                    RainMeadow.Debug(self.arenaSitting);
+
+                });
+                c.Emit(OpCodes.Br, skip);
+                c.MarkLabel(skip);
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex);
             }
+
+
+            // Mine
+
+            //try
+            //{
+            //    var c = new ILCursor(il);
+            //    var skipLabel = il.DefineLabel();
+            //    c.GotoNext(
+            //        x => x.MatchLdarg(0),
+            //        x => x.MatchLdfld<GameSession>("Players"),
+            //        x => x.MatchLdloc(1),
+            //        x => x.MatchCallvirt<AbstractCreature>("get_item"),
+            //        x => x.MatchLdfld<AbstractCreature>("state"),
+            //        x => x.MatchIsinst<PlayerState>(),
+            //        x => x.MatchLdfld<PlayerState>("playerNumber"),
+            //        x => x.MatchLdarg(1),
+            //        x => x.MatchBneUn(out var label));
+
+            //    // Emit the jump to skipLabel to ignore the condition
+            //    c.Emit(OpCodes.Br, skipLabel);
+
+            //    // Mark the skipLabel where execution should continue
+            //    c.MarkLabel(skipLabel);
+            //}
+            //catch (Exception ex)
+            //{
+            //    Logger.LogError(ex);
+            //}
 
         }
 
