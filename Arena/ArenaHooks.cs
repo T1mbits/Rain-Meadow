@@ -43,7 +43,7 @@ namespace RainMeadow
             On.ArenaBehaviors.ExitManager.PlayerTryingToEnterDen += ExitManager_PlayerTryingToEnterDen;
             On.ArenaBehaviors.Evilifier.Update += Evilifier_Update;
             On.ArenaBehaviors.RespawnFlies.Update += RespawnFlies_Update;
-            
+
 
 
             On.ShortcutGraphics.ChangeAllExitsToSheltersOrDots += ShortcutGraphics_ChangeAllExitsToSheltersOrDots;
@@ -63,10 +63,42 @@ namespace RainMeadow
 
             On.ArenaGameSession.Killing += ArenaGameSession_Killing;
             IL.CreatureCommunities.ctor += OverwriteArenaPlayerMax;
+            IL.ArenaGameSession.EndOfSessionLogPlayerAsAlive += ArenaGameSession_EndOfSessionLogPlayerAsAlive;
 
 
 
         }
+
+        private void ArenaGameSession_EndOfSessionLogPlayerAsAlive(ILContext il)
+        {
+            try
+            {
+                var c = new ILCursor(il);
+                var skipLabel = il.DefineLabel();
+                c.GotoNext(
+                    x => x.MatchLdarg(0),
+                    x => x.MatchLdfld<GameSession>("Players"),
+                    x => x.MatchLdloc(1),
+                    x => x.MatchCallvirt<AbstractCreature>("get_item"),
+                    x => x.MatchLdfld<AbstractCreature>("state"),
+                    x => x.MatchIsinst<PlayerState>(),
+                    x => x.MatchLdfld<PlayerState>("playerNumber"),
+                    x => x.MatchLdarg(1),
+                    i => i.MatchBneUn(out var label));
+
+                // Emit the jump to skipLabel to ignore the condition
+                c.Emit(OpCodes.Br, skipLabel);
+
+                // Mark the skipLabel where execution should continue
+                c.MarkLabel(skipLabel);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex);
+            }
+
+        }
+
         private void ArenaGameSession_ctor(On.ArenaGameSession.orig_ctor orig, ArenaGameSession self, RainWorldGame game)
         {
             orig(self, game);
@@ -392,8 +424,8 @@ namespace RainMeadow
                     }
                     self.ArenaSitting.players.Clear();
                     arena.returnToLobby = true;
-                   
-                   
+
+
 
                 }
 
