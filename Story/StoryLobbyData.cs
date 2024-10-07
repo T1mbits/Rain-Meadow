@@ -63,17 +63,18 @@ namespace RainMeadow
                 StoryGameMode storyGameMode = (onlineResource as Lobby).gameMode as StoryGameMode;
                 RainWorldGame currentGameState = RWCustom.Custom.rainWorld.processManager.currentMainLoop as RainWorldGame;
 
-                defaultDenPos = storyGameMode.defaultDenPos;
-                currentCampaign = storyGameMode.currentCampaign;
-                consumedItems = storyGameMode.consumedItems;
                 storyBoolRemixSettings = storyGameMode.storyBoolRemixSettings;
                 storyFloatRemixSettings = storyGameMode.storyFloatRemixSettings;
                 storyIntRemixSettings = storyGameMode.storyIntRemixSettings;
-                ghostsTalkedTo = storyGameMode.ghostsTalkedTo;
 
+                defaultDenPos = storyGameMode.defaultDenPos;
+                currentCampaign = storyGameMode.currentCampaign;
+                consumedItems = storyGameMode.consumedItems;
+                ghostsTalkedTo = storyGameMode.ghostsTalkedTo;
                 isInGame = RWCustom.Custom.rainWorld.processManager.currentMainLoop is RainWorldGame;
                 changedRegions = storyGameMode.changedRegions;
                 didStartCycle = storyGameMode.didStartCycle;
+
                 if (currentGameState?.session is StoryGameSession storySession)
                 {
                     cycleNumber = storySession.saveState.cycleNumber;
@@ -93,15 +94,14 @@ namespace RainMeadow
             internal override void ReadTo(ResourceData data)
             {
                 RainWorldGame currentGameState = RWCustom.Custom.rainWorld.processManager.currentMainLoop as RainWorldGame;
-                var playerstate = (currentGameState?.Players[0].state as PlayerState);
-                var lobby = (data.resource as Lobby);
+                var playerState = currentGameState?.Players[0].state as PlayerState;
+                var lobby = data.resource as Lobby;
+                var storyGameMode = lobby.gameMode as StoryGameMode;
 
-                (lobby.gameMode as StoryGameMode).defaultDenPos = defaultDenPos;
-                
-                if (playerstate != null)
+                if (playerState != null)
                 {
-                    playerstate.foodInStomach = food;
-                    playerstate.quarterFoodPoints = quarterfood;
+                    playerState.foodInStomach = food;
+                    playerState.quarterFoodPoints = quarterfood;
                 }
                 if ((currentGameState?.Players[0].realizedCreature is Player player))
                 {
@@ -121,16 +121,18 @@ namespace RainMeadow
                             (rainWorldGame.Players[0].realizedCreature as Player).glowing = theGlow;
                     }
                 }
-                (lobby.gameMode as StoryGameMode).currentCampaign = currentCampaign;
-                (lobby.gameMode as StoryGameMode).ghostsTalkedTo = ghostsTalkedTo;
-                (lobby.gameMode as StoryGameMode).consumedItems = consumedItems;
-                (lobby.gameMode as StoryGameMode).storyBoolRemixSettings = storyBoolRemixSettings;
-                (lobby.gameMode as StoryGameMode).storyFloatRemixSettings = storyFloatRemixSettings;
-                (lobby.gameMode as StoryGameMode).storyIntRemixSettings = storyIntRemixSettings;
 
-                (lobby.gameMode as StoryGameMode).isInGame = isInGame;
-                (lobby.gameMode as StoryGameMode).changedRegions = changedRegions;
-                (lobby.gameMode as StoryGameMode).didStartCycle = didStartCycle;
+                storyGameMode.storyBoolRemixSettings = storyBoolRemixSettings;
+                storyGameMode.storyFloatRemixSettings = storyFloatRemixSettings;
+                storyGameMode.storyIntRemixSettings = storyIntRemixSettings;
+
+                storyGameMode.defaultDenPos = defaultDenPos;
+                storyGameMode.currentCampaign = currentCampaign;
+                storyGameMode.consumedItems = consumedItems;
+                storyGameMode.ghostsTalkedTo = ghostsTalkedTo;
+                storyGameMode.isInGame = isInGame;
+                storyGameMode.changedRegions = changedRegions;
+                storyGameMode.didStartCycle = didStartCycle;
             }
         }
     }
