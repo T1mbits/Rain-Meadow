@@ -134,19 +134,34 @@ namespace RainMeadow
             }
             WorldCoordinate den = new WorldCoordinate(num.Value, -1, -1, int.Parse(array2[1], NumberStyles.Any, CultureInfo.InvariantCulture));
             AbstractCreature abstractCreature = new AbstractCreature(world, StaticWorld.GetCreatureTemplate(type), null, den, id);
+            abstractCreature.setCustomFlags();
+
+            if (abstractCreature.Room == null && num != -1)
+            {
+                RainMeadow.Debug("Spawn room does not exist: " + array2[0] + " ~ " + id.spawner.ToString() + " creature not spawning");
+                return null;
+            }
 
             foreach (var item in abstractCreature.stuckObjects.ToArray()) // Some (dropbug) creatures spawn with random items attached
             {
                 item.Deactivate();
             }
 
-            abstractCreature.state.LoadFromString(Regex.Split(array[3], "<cB>"));
-            if (abstractCreature.Room == null && num != -1)
+            if (abstractCreature.state is null)
             {
-                RainMeadow.Debug("Spawn room does not exist: " + array2[0] + " ~ " + id.spawner.ToString() + " creature not spawning");
-                return null;
+                if (abstractCreature.creatureTemplate.TopAncestor().type == CreatureTemplate.Type.Slugcat)
+                {
+                    abstractCreature.state = new PlayerState(abstractCreature, 0, RainMeadow.Ext_SlugcatStatsName.OnlineSessionRemotePlayer, false); // playerState is not serialized, initialize with dummy
+                }
+                else
+                {
+                    RainMeadow.Error($"Missing state for {abstractCreature} of type {abstractCreature.creatureTemplate}");
+                    return abstractCreature;
+                }
             }
-            abstractCreature.setCustomFlags();
+
+            abstractCreature.state.LoadFromString(Regex.Split(array[3], "<cB>"));
+
             return abstractCreature;
         }
 
@@ -158,11 +173,11 @@ namespace RainMeadow
             string serializedObject = newObjectEvent.MakeSerializedObject(initialState);
             RainMeadow.Debug("serializedObject: " + serializedObject);
 
-            var apo = AbstractCreatureFromString(world, serializedObject);
-            id.altSeed = apo.ID.RandomSeed;
-            apo.ID = id;
-            apo.pos = initialState.pos;
-            return apo;
+            var ac = AbstractCreatureFromString(world, serializedObject);
+            id.altSeed = ac.ID.RandomSeed;
+            ac.ID = id;
+            ac.pos = initialState.pos;
+            return ac;
         }
 
         public override void Deregister()
