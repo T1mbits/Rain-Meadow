@@ -116,6 +116,7 @@ namespace RainMeadow
         private void SanitizeStoryClientSettings(StoryClientSettingsData clientSettings)
         {
             clientSettings.readyForWin = false;
+            clientSettings.readyForGate = false;
             clientSettings.isDead = false;
         }
 
@@ -125,6 +126,7 @@ namespace RainMeadow
             gameMode.changedRegions = false;
             gameMode.didStartCycle = false;
             gameMode.readyForShelter = false;
+            gameMode.readyForGate = false;
             gameMode.defaultDenPos = null;
             gameMode.ghostsTalkedTo = new();
             gameMode.consumedItems = new();

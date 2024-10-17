@@ -23,6 +23,8 @@ namespace RainMeadow
             [OnlineField]
             public bool readyForShelter;
             [OnlineField]
+            public bool readyForGate;
+            [OnlineField]
             public bool friendlyFire;
             [OnlineField]
             public SlugcatStats.Name currentCampaign;
@@ -75,6 +77,7 @@ namespace RainMeadow
                 changedRegions = storyGameMode.changedRegions;
                 didStartCycle = storyGameMode.didStartCycle;
                 readyForShelter = storyGameMode.readyForShelter;
+                readyForGate = storyGameMode.readyForGate;
                 if (currentGameState?.session is StoryGameSession storySession)
                 {
                     cycleNumber = storySession.saveState.cycleNumber;
@@ -134,6 +137,7 @@ namespace RainMeadow
                 (lobby.gameMode as StoryGameMode).changedRegions = changedRegions;
                 (lobby.gameMode as StoryGameMode).didStartCycle = didStartCycle;
                 (lobby.gameMode as StoryGameMode).readyForShelter = readyForShelter;
+                (lobby.gameMode as StoryGameMode).readyForGate = readyForGate;
                 (lobby.gameMode as StoryGameMode).friendlyFire = friendlyFire;
 
             }
