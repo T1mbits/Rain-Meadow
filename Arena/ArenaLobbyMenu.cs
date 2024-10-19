@@ -110,11 +110,11 @@ namespace RainMeadow
 
             RemoveExcessArenaObjects();
 
-            this.currentGameType = this.nextGameType = ArenaSetup.GameTypeID.Competitive;
-            this.nextButton.inactive = true;
-            this.nextButton.signalText = "BLACKHOLE";
-            this.prevButton.inactive = true;
-            this.prevButton.signalText = "BLACKHOLE";
+            this.currentGameType = this.nextGameType = OnlineArenaModes.FFA;
+            //this.nextButton.inactive = true;
+            this.nextButton.signalText = "NEXT";
+            //this.prevButton.inactive = true;
+            this.prevButton.signalText = "PREVONLINE";
 
             this.backButton.signalText = "BACKTOLOBBY";
             this.playButton.signalText = "STARTARENAONLINEGAME";
@@ -122,6 +122,8 @@ namespace RainMeadow
             this.GetGameTypeSetup.rainWhenOnePlayerLeft = false; // TODO:  Hook this to update logic due to level switching if we want it
             this.GetGameTypeSetup.savingAndLoadingSession = false;
             this.GetGameTypeSetup.saveCreatures = false;
+
+            
 
         }
 

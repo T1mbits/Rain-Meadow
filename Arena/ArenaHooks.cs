@@ -40,6 +40,7 @@ namespace RainMeadow
 
 
 
+
             On.ArenaBehaviors.ExitManager.ExitsOpen += ExitManager_ExitsOpen;
             On.ArenaBehaviors.ExitManager.Update += ExitManager_Update;
             On.ArenaBehaviors.ExitManager.PlayerTryingToEnterDen += ExitManager_PlayerTryingToEnterDen;
@@ -78,9 +79,64 @@ namespace RainMeadow
             On.Menu.ArenaSettingsInterface.SetChecked += ArenaSettingsInterface_SetChecked;
             On.Menu.ArenaSettingsInterface.ctor += ArenaSettingsInterface_ctor;
 
+            On.ArenaSetup.GameTypeID.Init += GameTypeID_Init;
+            On.ArenaSetup.GameTypeSetup.InitAsGameType += GameTypeSetup_InitAsGameType;
+            On.ArenaSetup.CycleGameType += ArenaSetup_CycleGameType;
+            
+
         }
 
+        private ArenaSetup.GameTypeID ArenaSetup_CycleGameType(On.ArenaSetup.orig_CycleGameType orig, ArenaSetup self, int dir)
+        {
+            orig(self, dir);
 
+            int num = (int)self.currentGameType;
+            num += dir;
+            if (num < 0)
+            {
+                num = ExtEnum<ArenaSetup.GameTypeID>.values.Count - 1;
+                
+            }
+            else if (num >= ExtEnum<ArenaSetup.GameTypeID>.values.Count)
+            {
+                num = 0;
+            }
+            RainMeadow.Debug(ExtEnum<ArenaSetup.GameTypeID>.values.GetEntry(num));
+            return new ArenaSetup.GameTypeID(ExtEnum<ArenaSetup.GameTypeID>.values.GetEntry(num));
+
+        }
+
+        private void GameTypeSetup_InitAsGameType(On.ArenaSetup.GameTypeSetup.orig_InitAsGameType orig, ArenaSetup.GameTypeSetup self, ArenaSetup.GameTypeID gameType)
+        {
+            orig(self, gameType);
+            if (isArenaMode(out var _))
+            {
+                if (gameType == OnlineArenaModes.FFA)
+                {
+                    self.foodScore = 1;
+                    self.survivalScore = 0;
+                    self.spearHitScore = 0;
+                    self.repeatSingleLevelForever = false;
+                    self.savingAndLoadingSession = true;
+                    self.denEntryRule = ArenaSetup.GameTypeSetup.DenEntryRule.Standard;
+                    self.rainWhenOnePlayerLeft = true;
+                    self.levelItems = true;
+                    self.fliesSpawn = true;
+                    self.saveCreatures = true;
+                }
+            }
+        }
+
+        private void GameTypeID_Init(On.ArenaSetup.GameTypeID.orig_Init orig)
+        {
+            orig();
+            if (isArenaMode(out var _))
+            {
+                ExtEnum<ArenaSetup.GameTypeID>.values.AddEntry(OnlineArenaModes.FFA.value);
+                ExtEnum<ArenaSetup.GameTypeID>.values.AddEntry(OnlineArenaModes.TeamBattle.value);
+
+            }
+        }
 
         private void ArenaSettingsInterface_ctor(On.Menu.ArenaSettingsInterface.orig_ctor orig, Menu.ArenaSettingsInterface self, Menu.Menu menu, Menu.MenuObject owner)
         {
@@ -131,7 +187,7 @@ namespace RainMeadow
                         {
 
                             var onlineArrayMutliChoice = (selectable as Menu.MultipleChoiceArray.MultipleChoiceButton).multipleChoiceArray.IDString;
-                            if (arena.onlineArenaSettingsInterfaceMultiChoice.ContainsKey(onlineArrayMutliChoice)) 
+                            if (arena.onlineArenaSettingsInterfaceMultiChoice.ContainsKey(onlineArrayMutliChoice))
                             {
                                 self.SetSelected((selectable as Menu.MultipleChoiceArray.MultipleChoiceButton).multipleChoiceArray, arena.onlineArenaSettingsInterfaceMultiChoice[onlineArrayMutliChoice]);
                             }
@@ -218,10 +274,10 @@ namespace RainMeadow
 
         private void MultiplayerMenu_InitiateGameTypeSpecificButtons(On.Menu.MultiplayerMenu.orig_InitiateGameTypeSpecificButtons orig, Menu.MultiplayerMenu self)
         {
-            if (isArenaMode(out var _))
-            {
-                self.currentGameType = ArenaSetup.GameTypeID.Competitive; // force override for now
-            }
+            //if (isArenaMode(out var _))
+            //{
+            //    self.currentGameType = ArenaSetup.GameTypeID.Competitive; // force override for now
+            //}
             orig(self);
         }
 
