@@ -323,6 +323,7 @@ public class ArenaLobbyMenu2 : SmartMenu, SelectOneButton.SelectOneButtonOwner
     public override void ShutDownProcess()
     {
         manager.rainWorld.progression.SaveProgression(true, true);
+        if (manager.upcomingProcess != ProcessManager.ProcessID.Game)  OnlineManager.LeaveLobby();
         base.ShutDownProcess();
     }
     public override void Update()
