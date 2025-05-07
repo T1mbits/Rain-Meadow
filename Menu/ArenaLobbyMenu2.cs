@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -321,6 +320,7 @@ public class ArenaLobbyMenu2 : SmartMenu, SelectOneButton.SelectOneButtonOwner
         slugcatDescriptionLabel.text = Arena.slugcatSelectDescriptions[slugcat.value];
         slugcatNameLabel.text = Arena.slugcatSelectDisplayNames[slugcat.value];
     }
+
     public override void ShutDownProcess()
     {
         manager.rainWorld.progression.SaveProgression(true, true);
