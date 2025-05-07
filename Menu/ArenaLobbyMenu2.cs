@@ -320,6 +320,7 @@ public class ArenaLobbyMenu2 : SmartMenu, SelectOneButton.SelectOneButtonOwner
         slugcatDescriptionLabel.text = Arena.slugcatSelectDescriptions[slugcat.value];
         slugcatNameLabel.text = Arena.slugcatSelectDisplayNames[slugcat.value];
     }
+>>>>>>> parent of 6c8de003 (parse for null slugcat)
     public override void ShutDownProcess()
     {
         manager.rainWorld.progression.SaveProgression(true, true);
