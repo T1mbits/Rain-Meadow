@@ -271,7 +271,8 @@ namespace RainMeadow
             arena.playerEnteredGame++;
             foreach (var player in arena.arenaSittingOnlineOrder)
             {
-                OnlinePlayer? getPlayer = ArenaHelpers.FindOnlinePlayerByLobbyId(player);
+
+                var getPlayer = ArenaHelpers.FindOnlinePlayerByLobbyId(player);
                 if (getPlayer != null)
                 {
                     if (!getPlayer.isMe)
@@ -280,44 +281,21 @@ namespace RainMeadow
                     }
                 }
             }
-            if (OnlineManager.lobby.isOwner)
+            if (OnlineManager.lobby.isOwner && !arena.initiatedStartGameForClient)
             {
-                arena.isInGame = true; // used for readied players at the beginning
-                if (arena.playersLateWaitingInLobbyForNextRound.Count > 0)
+                arena.isInGame = true;
+                foreach (var p in arena.arenaSittingOnlineOrder)
                 {
-                    foreach (var p in arena.playersLateWaitingInLobbyForNextRound)
+                    OnlinePlayer onlineP = ArenaHelpers.FindOnlinePlayerByLobbyId(p);
+                    if (onlineP != null)
                     {
-                        OnlinePlayer? onlineP = ArenaHelpers.FindOnlinePlayerByLobbyId(p);
-                        if (onlineP != null)
-                        {
-                            onlineP.InvokeOnceRPC(ArenaRPCs.Arena_NotifyRejoinAllowed, true);
-                        }
+                        if (onlineP.isMe) continue;
+                        onlineP.InvokeOnceRPC(ArenaRPCs.Arena_NotifyStartGame); // notify other players that host is starting the game
                     }
-                }
-                foreach (var arenaPlayer in self.arenaSitting.players)
-                {
-                    if (!arena.playerNumberWithKills.ContainsKey(arenaPlayer.playerNumber))
-                    {
-                        arena.playerNumberWithKills.Add(arenaPlayer.playerNumber, 0);
-                    }
-                    if (!arena.playerNumberWithDeaths.ContainsKey(arenaPlayer.playerNumber))
-                    {
-                        arena.playerNumberWithDeaths.Add(arenaPlayer.playerNumber, 0);
-                    }
-                    if (!arena.playerNumberWithWins.ContainsKey(arenaPlayer.playerNumber))
-                    {
-                        arena.playerNumberWithWins.Add(arenaPlayer.playerNumber, 0);
-                    }
-                }
-                arena.playersLateWaitingInLobbyForNextRound.Clear();
 
-
+                }
+                arena.initiatedStartGameForClient = true; // set this so we don't notify again
             }
-            arena.hasPermissionToRejoin = false;
-
-
-
-
         }
 
         public virtual void ArenaSessionUpdate(ArenaOnlineGameMode arena, ArenaGameSession session)
