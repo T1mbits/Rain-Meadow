@@ -63,8 +63,8 @@ public class ArenaLobbyMenu2 : SmartMenu, SelectOneButton.SelectOneButtonOwner
 
         pages.Add(slugcatSelectPage = new Page(this, null, "slugcat select", 1));
         slugcatSelectPage.pos.x += 1500f;
-
         ChangeScene(slugcatScene = Arena.slugcatSelectMenuScenes[Arena.arenaClientSettings.playingAs.value]);
+        competitiveShadow = new(this, scene, "", "CompetitiveShadow", new Vector2(-2.99f, 265.01f), true, false);
         competitiveTitle = new(this, scene, "", "CompetitiveTitle", new Vector2(-2.99f, 265.01f), true, false);
         competitiveTitle.sprite.shader = manager.rainWorld.Shaders["MenuText"];
 
@@ -173,7 +173,7 @@ public class ArenaLobbyMenu2 : SmartMenu, SelectOneButton.SelectOneButtonOwner
 
         BuildPlayerDisplay();
         MatchmakingManager.OnPlayerListReceived += OnlineManager_OnPlayerListReceived;
-        SwitchSelectedSlugcat(GetArenaSetup.playerClass[0] ?? Arena.arenaClientSettings.playingAs);
+        SwitchSelectedSlugcat(GetArenaSetup.playerClass[0]);
     }
 
     public void ChangeScene(MenuScene.SceneID sceneID)
@@ -224,10 +224,11 @@ public class ArenaLobbyMenu2 : SmartMenu, SelectOneButton.SelectOneButtonOwner
             RainMeadow.Error("arena is null, slugcat wont be changed!");
             return;
         }
-        slugcat = slugcat.Index == -1? SlugcatStats.Name.White : slugcat;
+        slugcat = allSlugcats.IndexOf(slugcat) == -1 ? allSlugcats[0] : slugcat;
         slugcatScene = Arena.slugcatSelectMenuScenes[slugcat.value];
         Arena.arenaClientSettings.playingAs = slugcat;
         GetArenaSetup.playerClass[0] = slugcat;
+        selectedSlugcatIndex = allSlugcats.IndexOf(slugcat);
         RainMeadow.Debug($"My Slugcat: {Arena.arenaClientSettings.playingAs}, in lobby list of client settings: {(ArenaHelpers.GetArenaClientSettings(OnlineManager.mePlayer)?.playingAs?.value) ?? "NULL!"}");
         if (slugcat == MoreSlugcatsEnums.SlugcatStatsName.Sofanthiel)
         {
@@ -248,12 +249,12 @@ public class ArenaLobbyMenu2 : SmartMenu, SelectOneButton.SelectOneButtonOwner
             RainMeadow.rainMeadowOptions._SaveConfigFile();
         }
         else (GetArenaSetup as ArenaOnlineSetup)?.SaveNonSessionToFile();
-        manager.rainWorld.progression.SaveProgression(true, true);
         if (manager.upcomingProcess != ProcessManager.ProcessID.Game)
         {
             OnlineManager.LeaveLobby();
             manager.arenaSetup = null;
         }
+        else manager.rainWorld.progression.SaveProgression(true, true);
         base.ShutDownProcess();
     }
     public override void Update()
