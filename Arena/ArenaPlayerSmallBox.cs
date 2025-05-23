@@ -51,6 +51,7 @@ namespace RainMeadow.UI.Components
         }
         public override void GrafUpdate(float timeStacker)
         {
+            greyOutButtons();
             base.GrafUpdate(timeStacker);
             Vector2 pos = DrawPos(timeStacker), size = DrawSize(timeStacker);
             for (int i = 0; i < 2 && i < baseSprites.Length; i++)
@@ -67,6 +68,15 @@ namespace RainMeadow.UI.Components
             slugcatButton.rectColor = lerpedBaseCol;
             slugcatButton.labelColor = lerpedBaseCol;
         }
+
+        public void greyOutButtons()
+        {
+            if (colorKickButton is not null && colorKickButton.signalText == "Color_Slugcat")
+            {
+                colorKickButton.forceGreyOut = slugcatButton.slug is null || !ArenaHelpers.allSlugcats.Contains(slugcatButton.slug);
+            } 
+        }
+
         public void InitButtons(bool canKick)
         {
             float yPosDefaultSymbol = MiddleOfY(24);
@@ -82,6 +92,8 @@ namespace RainMeadow.UI.Components
                     BanHammer.BanUser(profileIdentifier);
                 };
             }
+
+            greyOutButtons();
         }
         public HSLColor MyBaseColor()
         {

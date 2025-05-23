@@ -69,6 +69,7 @@ namespace RainMeadow.UI.Components
         }
         public override void GrafUpdate(float timeStacker)
         {
+            greyOutButtons();
             base.GrafUpdate(timeStacker);
             Vector2 size = DrawSize(timeStacker), pos = DrawPos(timeStacker);
             Color pingColor = GetPingColor(realPing);
@@ -99,6 +100,15 @@ namespace RainMeadow.UI.Components
             nameLabel.label.color = Color.Lerp(basecolor.rgb, rainbow, rainbow.a);
             slugcatButton.secondaryColor = showRainbow ? rainbow : null;
         }
+
+        public void greyOutButtons()
+        {
+            if (colorInfoButton is not null)
+            {
+                colorInfoButton.forceGreyOut = slugcatButton.slugcat is null || !ArenaHelpers.allSlugcats.Contains(slugcatButton.slugcat);
+            }
+        }
+
         public void InitButtons(bool canKick)
         {
             Vector2 basePos = new(nameLabel.pos.x + 10, slugcatButton.pos.y + 10);
@@ -136,6 +146,8 @@ namespace RainMeadow.UI.Components
                     lines.Add(connector);
                 }
             }
+
+            greyOutButtons();
         }
         public HSLColor MyBaseColor()
         {

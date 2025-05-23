@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 using Menu;
 using MoreSlugcats;
 using static RainMeadow.ArenaPrepTimer;
@@ -183,6 +184,19 @@ namespace RainMeadow
                 slugcatSelectDescriptions.Remove("Night");
                 slugcatSelectDisplayNames.Remove("Night");
             }
+
+            
+
+            slugcatSelectMenuScenes.Add("MeadowRandom", MenuScene.SceneID.Endgame_Traveller);
+            StringBuilder randomDescBuilder = new();
+            if (ModManager.MSC) randomDescBuilder.Append("Am I Warrior from the past, or a Messiah from the future?");
+            else randomDescBuilder.Append("Am I Cat Searching for many, or a Mouse searching for one?");
+            if (ModManager.Watcher) randomDescBuilder.Append("\nAm I a doomed Samaritan, or an Anomaly across time and space?");
+            else randomDescBuilder.Append("\nAm I doomed a Samaritan, or am I forever stuck in your shadow?");
+            randomDescBuilder.Append("\nI do not know, for I am not one. I am many.");
+
+            slugcatSelectDescriptions.Add("MeadowRandom", randomDescBuilder.ToString());
+            slugcatSelectDisplayNames.Add("MeadowRandom", "The Unknown");
         }
 
         public void ResetInvDetails()
@@ -245,11 +259,24 @@ namespace RainMeadow
 
         public void ResetAtNextLevel()
         {
+            InitializeSlugcat();
             ResetScrollTimer();
             ResetGameTimer();
             ResetPlayersEntered();
             ResetChampAddition();
 
+        }
+
+        public void InitializeSlugcat() {
+            if (arenaClientSettings.playingAs == RainMeadow.Ext_SlugcatStatsName.OnlineRandomSlugcat) {
+                System.Random random = new System.Random((int)DateTime.Now.Ticks);
+                avatarSettings.playingAs = ArenaHelpers.allSlugcats[random.Next(ArenaHelpers.allSlugcats.Count)]!;
+                arenaClientSettings.randomPlayingAs = avatarSettings.playingAs;
+            } else {
+                avatarSettings.playingAs = arenaClientSettings.playingAs;
+            }
+
+            avatarSettings.currentColors = OnlineManager.instance.manager.rainWorld.progression.GetCustomColors(avatarSettings.playingAs);
         }
 
         public void ResetGameTimer()
