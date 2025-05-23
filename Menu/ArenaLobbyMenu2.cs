@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Menu;
 using Menu.Remix;
 using Menu.Remix.MixedUI;
+using Menu.Remix.MixedUI.ValueTypes;
 using MoreSlugcats;
 using RainMeadow.UI.Components;
 using RWCustom;
@@ -53,7 +54,6 @@ public class ArenaLobbyMenu2 : SmartMenu, SelectOneButton.SelectOneButtonOwner
         Competitive competitive = new();
         if (!Arena.registeredGameModes.ContainsKey(competitive))
             Arena.registeredGameModes.Add(new Competitive(), Competitive.CompetitiveMode.value);
-
         if (Arena.currentGameMode == "" || Arena.currentGameMode == null)
             Arena.currentGameMode = Competitive.CompetitiveMode.value;
 
@@ -90,7 +90,7 @@ public class ArenaLobbyMenu2 : SmartMenu, SelectOneButton.SelectOneButtonOwner
             );
         playListTab.AddObjects(x);
 
-        arenaSettingsInterface = new(this, matchSettingsTab, new(120, 205), Arena.currentGameMode, [.. Arena.registeredGameModes.Values.Select(v => new ListItem(v))]);
+        arenaSettingsInterface = new(this, matchSettingsTab, new(120, 0), Arena.currentGameMode, [.. Arena.registeredGameModes.Values.Select(v => new ListItem(v))]);
         arenaSettingsInterface.CallForSync();
         matchSettingsTab.AddObjects(arenaSettingsInterface);
 
