@@ -132,7 +132,7 @@ namespace RainMeadow
                 slugcatSelectMenuScenes.Add("Rivulet", MoreSlugcatsEnums.MenuSceneID.Landscape_MS);
                 slugcatSelectMenuScenes.Add("Saint", MoreSlugcatsEnums.MenuSceneID.Landscape_CL);
                 slugcatSelectMenuScenes.Add("Slugpup", RainMeadow.rainMeadowOptions.SlugpupHellBackground.Value ? MoreSlugcatsEnums.MenuSceneID.Landscape_HR : MenuScene.SceneID.Intro_4_Walking);
-                slugcatSelectMenuScenes.Add("Inv", MoreSlugcatsEnums.MenuSceneID.);
+                slugcatSelectMenuScenes.Add("Inv", MoreSlugcatsEnums.MenuSceneID.End_Inv);
 
                 slugcatSelectDescriptions.Add("Gourmand", "Your tale of twist and turns is near-complete.\nCrush this one last quest.");
                 slugcatSelectDescriptions.Add("Artificer", "An explosive personality and unmatched anger.\nMaul and detonate your way to vengeance.");

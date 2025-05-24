@@ -441,7 +441,7 @@ public class ArenaLobbyMenu2 : SmartMenu, SelectOneButton.SelectOneButtonOwner
         playerSmallBox.playerButton.TryBind(playerDisplay.scrollSlider, true, false, false, false);
         return playerSmallBox;
     }
-    public void OpenColorConfig(SlugcatStats.Name? slugcat)
+    public void OpenColorConfig(SlugcatStats.Name slugcat)
     {
         if (!ModManager.MMF)
         {
@@ -451,7 +451,7 @@ public class ArenaLobbyMenu2 : SmartMenu, SelectOneButton.SelectOneButtonOwner
             return;
         }
         PlaySound(SoundID.MENU_Checkbox_Check);
-        slugcatDialog = new ColorMultipleSlugcatsDialog(manager, () => { }, ArenaHelpers.selectableSlugcats, slugcat);
+        slugcatDialog = new ColorMultipleSlugcatsDialog(manager, () => { }, ArenaHelpers.allSlugcats, ArenaHelpers.allSlugcats.Contains(slugcat)? slugcat : null);
         manager.ShowDialog(slugcatDialog);
     }
 
