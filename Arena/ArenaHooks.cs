@@ -1474,7 +1474,6 @@ namespace RainMeadow
             {
                 OnlinePlayer? currentName = ArenaHelpers.FindOnlinePlayerByFakePlayerNumber(arena, self.player.playerNumber);
                 ArenaClientSettings? arenaclientSettings = ArenaHelpers.GetArenaClientSettings(currentName);
-                player.playerClass = arenaclientSettings?.playingAs ?? player.playerClass;  // update for rejoins
                 if (OnlineManager.lobby.isOwner)
                 {
 
@@ -1515,7 +1514,15 @@ namespace RainMeadow
                 {
                     self.playerNameLabel.text = Utils.Translate(userNameBackup);
                 }
-                self.portrait = new(menu, self, "", SlugcatColorableButton.GetFileForSlugcat(player.playerClass, arenaclientSettings != null && arenaclientSettings.slugcatColor != Color.black, self.DeadPortraint), new(size.y / 2, size.y / 2), true, true);
+
+                var portraitcat = player.playerClass;
+                if (self is FinalResultbox && playingAsRandom)
+                {
+                    portraitcat = RainMeadow.Ext_SlugcatStatsName.OnlineRandomSlugcat;
+                }
+
+                
+                self.portrait = new(menu, self, "", SlugcatColorableButton.GetFileForSlugcat(portraitcat, arenaclientSettings != null && arenaclientSettings.slugcatColor != Color.black, self.DeadPortraint), new(size.y / 2, size.y / 2), true, true);
                 self.subObjects.Add(self.portrait);
             }
 
