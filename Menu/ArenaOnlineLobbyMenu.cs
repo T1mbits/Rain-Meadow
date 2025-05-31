@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Menu;
 using Menu.Remix;
 using Menu.Remix.MixedUI;
+using Menu.Remix.MixedUI.ValueTypes;
 using MoreSlugcats;
 using RainMeadow.UI.Components;
 using RWCustom;
@@ -53,12 +54,12 @@ public class ArenaOnlineLobbyMenu : SmartMenu, SelectOneButton.SelectOneButtonOw
 
         Arena.AddExternalGameModes(new Competitive(), Competitive.CompetitiveMode);
 
+
         if (Arena.currentGameMode == "" || Arena.currentGameMode == null)
             Arena.currentGameMode = Competitive.CompetitiveMode.value;
 
         pages.Add(slugcatSelectPage = new Page(this, null, "slugcat select", 1));
         slugcatSelectPage.pos.x += 1500f;
-        ChangeScene(slugcatScene = Arena.slugcatSelectMenuScenes[Arena.arenaClientSettings.playingAs.value]);
         competitiveShadow = new(this, scene, "", "CompetitiveShadow", new Vector2(-2.99f, 265.01f), true, false);
         competitiveTitle = new(this, scene, "", "CompetitiveTitle", new Vector2(-2.99f, 265.01f), true, false);
         competitiveTitle.sprite.shader = manager.rainWorld.Shaders["MenuText"];
@@ -74,7 +75,7 @@ public class ArenaOnlineLobbyMenu : SmartMenu, SelectOneButton.SelectOneButtonOw
 
         playListTab.AddObjects(levelSelector = new ArenaLevelSelector(this, playListTab, new Vector2(65, 7.5f), false));
 
-        arenaSettingsInterface = new(this, matchSettingsTab, new(120, 205), Arena.currentGameMode, [.. Arena.registeredGameModes.Values.Select(v => new ListItem(v))]);
+        arenaSettingsInterface = new(this, matchSettingsTab, new(120, 0), Arena.currentGameMode, [.. Arena.registeredGameModes.Values.Select(v => new ListItem(v))]);
         arenaSettingsInterface.CallForSync();
         matchSettingsTab.AddObjects(arenaSettingsInterface);
 
@@ -105,7 +106,6 @@ public class ArenaOnlineLobbyMenu : SmartMenu, SelectOneButton.SelectOneButtonOw
 
             Vector2 pos = i < buttonsInTopRow ? new Vector2(topRowStartingXPos + 110f * i, 450f) : new Vector2(bottomRowStartingXPos + 110f * (i - buttonsInTopRow), 340f);
             EventfulSelectOneButton btn = new(this, slugcatSelectPage, "", "scug select", pos, new Vector2(100f, 100f), slugcatSelectButtons, i);
-            btn.OnClick += _ => SwitchSelectedSlugcat(allSlugcats[index]);
 
             MenuIllustration portrait = new(this, btn, "", SlugcatColorableButton.GetFileForSlugcat(allSlugcats[i], false), btn.size / 2, true, true);
             btn.subObjects.Add(portrait);
@@ -171,12 +171,13 @@ public class ArenaOnlineLobbyMenu : SmartMenu, SelectOneButton.SelectOneButtonOw
 
         BuildPlayerDisplay();
         MatchmakingManager.OnPlayerListReceived += OnlineManager_OnPlayerListReceived;
-        RainMeadow.Debug(GetArenaSetup.playerClass[0]?.value ?? "NULL");
         SwitchSelectedSlugcat(GetArenaSetup.playerClass[0]);
+        ChangeScene(slugcatScene!);
     }
 
     public void ChangeScene(MenuScene.SceneID sceneID)
     {
+        RainMeadow.Debug($"Scene wanted to switch: {sceneID.value}");
         slugcatScene = sceneID;
         pendingBgChange = false;
 
@@ -218,26 +219,18 @@ public class ArenaOnlineLobbyMenu : SmartMenu, SelectOneButton.SelectOneButtonOw
 
     public void SwitchSelectedSlugcat(SlugcatStats.Name slugcat)
     {
-        if (!RainMeadow.isArenaMode(out _))
-        {
-            RainMeadow.Error("arena is null, slugcat wont be changed!");
-            return;
-        }
         slugcat = allSlugcats.IndexOf(slugcat) == -1 ? allSlugcats[0] : slugcat;
-        slugcatScene = Arena.slugcatSelectMenuScenes[slugcat.value];
-        Arena.arenaClientSettings.playingAs = slugcat;
         GetArenaSetup.playerClass[0] = slugcat;
         selectedSlugcatIndex = allSlugcats.IndexOf(slugcat);
-        RainMeadow.Debug($"My Slugcat: {Arena.arenaClientSettings.playingAs}, in lobby list of client settings: {(ArenaHelpers.GetArenaClientSettings(OnlineManager.mePlayer)?.playingAs?.value) ?? "NULL!"}");
+        slugcatScene = Arena.slugcatSelectMenuScenes.TryGetValue(slugcat.value, out MenuScene.SceneID newScene) ? newScene : ArenaHelpers.randomScenes[UnityEngine.Random.Range(0, ArenaHelpers.randomScenes.Count)];
         if (slugcat == MoreSlugcatsEnums.SlugcatStatsName.Sofanthiel)
         {
             slugcatDescriptionLabel.text = painCatDescription;
             slugcatNameLabel.text = painCatName;
             return;
         }
-
-        slugcatDescriptionLabel.text = Arena.slugcatSelectDescriptions[slugcat.value];
-        slugcatNameLabel.text = Arena.slugcatSelectDisplayNames[slugcat.value];
+        slugcatDescriptionLabel.text = Translate(Arena.slugcatSelectDescriptions.TryGetValue(slugcat.value, out string desc) ? desc : "");
+        slugcatNameLabel.text = Translate(Arena.slugcatSelectDisplayNames.TryGetValue(slugcat.value, out string name) ? name : $"The {SlugcatStats.getSlugcatName(slugcat)}");
 
         if (slugcat == MoreSlugcatsEnums.SlugcatStatsName.Artificer && UnityEngine.Random.Range(0, 1000) == 0)
         {
@@ -331,7 +324,9 @@ public class ArenaOnlineLobbyMenu : SmartMenu, SelectOneButton.SelectOneButtonOw
     public void UpdateOnlineUI() //for future online ui stuff
     {
         if (!RainMeadow.isArenaMode(out _)) return;
-        SlugcatStats.Name slugcat = Arena.arenaClientSettings.playingAs;
+
+        SlugcatStats.Name slugcat = GetArenaSetup.playerClass[0];
+        Arena.arenaClientSettings.playingAs = slugcat;
         Arena.arenaClientSettings.selectingSlugcat = currentPage == 1;
         Arena.arenaClientSettings.slugcatColor = this.IsCustomColorEnabled(slugcat) ? ColorHelpers.HSL2RGB(ColorHelpers.RWJollyPicRange(this.GetMenuHSL(slugcat, 0))) : Color.black;
         if (playerDisplayer != null)
@@ -453,6 +448,9 @@ public class ArenaOnlineLobbyMenu : SmartMenu, SelectOneButton.SelectOneButtonOw
 
     public void SetCurrentlySelectedOfSeries(string series, int to)
     {
-        selectedSlugcatIndex = to; // no need to check series (for now) since there is only one SelectOneButton in this menu
+        if (selectedSlugcatIndex == to) return; //to prevent random bg to rerandomize when selecting on the already selected slugcat
+        SwitchSelectedSlugcat(allSlugcats[to]); // no need to check series (for now) since there is only one SelectOneButton in this menu
+        pendingBgChange = true; //fade when changing slugcat but same bg
+
     }
 }
