@@ -3,12 +3,13 @@ using System;
 using System.Collections.Generic;
 using Menu;
 using RainMeadow.UI.Components.Patched;
+using RainMeadow.UI.Interfaces;
 using RWCustom;
 using UnityEngine;
 
 namespace RainMeadow.UI.Components;
 
-public class VerticalScrollSelector : RectangularMenuObject, Slider.ISliderOwner
+public class VerticalScrollSelector : RectangularMenuObject, Slider.ISliderOwner, IPLEASEUPDATEME
 {
     public class SideButton : SimplerSymbolButton
     {
@@ -17,7 +18,7 @@ public class VerticalScrollSelector : RectangularMenuObject, Slider.ISliderOwner
         public float labelFade, lastLabelFade;
         public new event Action<SideButton>? OnClick;
 
-        public SideButton(Menu.Menu menu, MenuObject owner, Vector2 pos, string symbolName, string text, string description) : base(menu, owner, symbolName, "", pos)
+        public SideButton(Menu.Menu menu, MenuObject owner, Vector2 pos, string symbolName, string text, string description, string signal = "") : base(menu, owner, symbolName, signal, pos)
         {
             this.description = description;
             label = new MenuLabel(menu, this, text, new Vector2(34f, -3f), new Vector2(0f, 30f), false);
@@ -51,14 +52,13 @@ public class VerticalScrollSelector : RectangularMenuObject, Slider.ISliderOwner
     public FSprite[] rightLines = [];
     public List<SideButton> sideButtons = [];
     public bool sliderPulled;
-    public int scrollPos;
     public float floatScrollPos, floatScrollVelocity, sliderValue, sliderValueCap, elementHeight, elementSpacing;
     public int TotalItems => scrollElements.Count;
     public int MaxVisibleElements => (int)(UpperBound / (elementHeight + elementSpacing));
     public int MaximumScrollPos => Math.Max(0, TotalItems - MaxVisibleElements);
     public float UpperBound => size.y;
     public float LowerBound => 0;
-
+    public virtual int ScrollPos { get; set; }
     public VerticalScrollSelector(Menu.Menu menu, MenuObject owner, Vector2 pos, Vector2 elementSize, int amountOfVisibleElements, bool scrollButtons = true, float elementSpacing = 10f, float scrollButtonWidth = 24f)
         : base(menu, owner, pos, new Vector2(elementSize.x, amountOfVisibleElements * (elementSize.y + elementSpacing) + elementSpacing))
     {
@@ -101,9 +101,9 @@ public class VerticalScrollSelector : RectangularMenuObject, Slider.ISliderOwner
         }
     }
 
-    public SideButton AddSideButton(string symbolName, string text = "", string description = "")
+    public SideButton AddSideButton(string symbolName, string text = "", string description = "", string signal = "")
     {
-        SideButton btn = new(menu, this, new Vector2(size.x + 7f, 14f + 30f * sideButtons.Count), symbolName, text, description);
+        SideButton btn = new(menu, this, new Vector2(size.x + 7f, 14f + 30f * sideButtons.Count), symbolName, text, description, signal);
         sideButtons.Add(btn);
         subObjects.Add(btn);
 
@@ -122,27 +122,24 @@ public class VerticalScrollSelector : RectangularMenuObject, Slider.ISliderOwner
             scrollElements.Add(element);
             subObjects.Add((MenuObject)element);
         }
-
-        ConstrainScroll();
     }
-
-    public void RemoveScrollElements(params ButtonScroller.IPartOfButtonScroller[] elements)
+    public void RemoveScrollElements(bool constrainScroll, params ButtonScroller.IPartOfButtonScroller[] elements)
     {
         for (int i = 0; i < elements.Length; i++)
             scrollElements.Remove(elements[i]);
-
-        ConstrainScroll();
+        if (constrainScroll) ConstrainScroll();
     }
+    public void RemoveScrollElements(params ButtonScroller.IPartOfButtonScroller[] elements) => RemoveScrollElements(true, elements);
 
-    public void ConstrainScroll() => scrollPos = Mathf.Clamp(scrollPos, 0, MaximumScrollPos);
+    public void ConstrainScroll() => ScrollPos = Mathf.Clamp(ScrollPos, 0, MaximumScrollPos);
 
     public void Scroll(int scrollDir)
     {
-        scrollPos += scrollDir;
+        ScrollPos += scrollDir;
         ConstrainScroll();
     }
 
-    public float IdealScrollElementYPos(int elementIndex) => UpperBound - (elementHeight + elementSpacing + (elementIndex * (elementSpacing + elementHeight))) + (floatScrollPos * (elementHeight + elementSpacing));
+    public virtual float IdealScrollElementYPos(int elementIndex) => UpperBound - (elementHeight + elementSpacing + (elementIndex * (elementSpacing + elementHeight))) + (floatScrollPos * (elementHeight + elementSpacing));
 
     public float PercentageOverYBound(float y)
     {
@@ -151,7 +148,6 @@ public class VerticalScrollSelector : RectangularMenuObject, Slider.ISliderOwner
         if (elementUpperBound > UpperBound) return 1 - Math.Min(1, (elementUpperBound - UpperBound) / elementHeight);
         return 1;
     }
-
     public void SliderSetValue(Slider slider, float setValue)
     {
         sliderValue = 1 - setValue;
@@ -162,17 +158,26 @@ public class VerticalScrollSelector : RectangularMenuObject, Slider.ISliderOwner
 
     public override void Update()
     {
+        base.Update();
         if (MouseOver && menu.manager.menuesMouseMode && menu.mouseScrollWheelMovement != 0)
             Scroll(menu.mouseScrollWheelMovement);
+        HiddenUpdate();
+    }
 
+    public override void GrafUpdate(float timeStacker)
+    {
+        base.GrafUpdate(timeStacker);
+        HiddenGrafUpdate(timeStacker);
+    }
+    public virtual float GetCurrentScrollPos() => ScrollPos;
+    public virtual void HiddenUpdate()
+    {
         for (int i = 0; i < scrollElements.Count; i++)
         {
             scrollElements[i].Pos = new(scrollElements[i].Pos.x, IdealScrollElementYPos(i));
             scrollElements[i].Alpha = PercentageOverYBound(scrollElements[i].Pos.y);
         }
-
-        base.Update();
-
+        float scrollPos = GetCurrentScrollPos();
         floatScrollPos = Custom.LerpAndTick(floatScrollPos, scrollPos, 0.01f, 0.01f);
         floatScrollVelocity *= Custom.LerpMap(Math.Abs(scrollPos - floatScrollPos), 0.25f, 1.5f, 0.45f, 0.99f);
         floatScrollVelocity += Mathf.Clamp(scrollPos - floatScrollPos, -2.5f, 2.5f) / 2.5f * 0.15f;
@@ -181,7 +186,10 @@ public class VerticalScrollSelector : RectangularMenuObject, Slider.ISliderOwner
         sliderValueCap = Custom.LerpAndTick(sliderValueCap, MaximumScrollPos, 0.02f, scrollElements.Count / 40f);
 
         slider.buttonBehav.greyedOut = MaximumScrollPos == 0;
-
+        if (scrollDownButton != null)
+            scrollDownButton.buttonBehav.greyedOut = ScrollPos == MaximumScrollPos;
+        if (scrollUpButton != null)
+            scrollUpButton.buttonBehav.greyedOut = ScrollPos == 0;
         if (MaximumScrollPos == 0)
             sliderValue = Custom.LerpAndTick(sliderValue, 0.5f, 0.02f, 0.05f);
         else
@@ -189,18 +197,15 @@ public class VerticalScrollSelector : RectangularMenuObject, Slider.ISliderOwner
             if (sliderPulled)
             {
                 floatScrollPos = Mathf.Lerp(0f, sliderValueCap, sliderValue);
-                scrollPos = Custom.IntClamp(Mathf.RoundToInt(floatScrollPos), 0, MaximumScrollPos);
+                ScrollPos = Custom.IntClamp(Mathf.RoundToInt(floatScrollPos), 0, MaximumScrollPos);
                 sliderPulled = false;
             }
             else
                 sliderValue = Custom.LerpAndTick(sliderValue, Mathf.InverseLerp(0f, sliderValueCap, floatScrollPos), 0.02f, 0.05f);
         }
     }
-
-    public override void GrafUpdate(float timeStacker)
+    public virtual void HiddenGrafUpdate(float timeStacker)
     {
-        base.GrafUpdate(timeStacker);
-
         for (int i = 0; i < rightLines.Length; i++)
         {
             float num = (i != 0) ? (sideButtons[i - 1].DrawY(timeStacker) + sideButtons[i - 1].DrawSize(timeStacker).y + 0.01f) : (DrawY(timeStacker) + 9.01f);

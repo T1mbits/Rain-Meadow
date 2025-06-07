@@ -6,6 +6,7 @@ using Menu;
 using Menu.Remix;
 using Menu.Remix.MixedUI;
 using RainMeadow.UI.Components.Patched;
+using RainMeadow.UI.Interfaces;
 using UnityEngine;
 
 namespace RainMeadow.UI.Components;
@@ -191,6 +192,7 @@ public class TabContainer : RectangularMenuObject
         {
             if (IsHidden)
             {
+                UpdateHiddenObjects(this);
                 return;
             }
             base.Update();
@@ -199,6 +201,7 @@ public class TabContainer : RectangularMenuObject
         {
             if (IsHidden)
             {
+                GrafUpdateHiddenObjects(this, timeStacker);
                 return;
             }
             base.GrafUpdate(timeStacker);
@@ -232,6 +235,24 @@ public class TabContainer : RectangularMenuObject
         public void HideObject(MenuObject? obj)
         {
             if (obj != null) RecursiveRemoveSelectables(obj);
+        }
+        public void UpdateHiddenObjects(MenuObject obj)
+        {
+            for (int i = 0; i < obj.subObjects.Count; i++)
+            {
+                MenuObject subObj = obj.subObjects[i];
+                (subObj as IPLEASEUPDATEME)?.HiddenUpdate();
+                UpdateHiddenObjects(subObj);
+            }
+        }
+        public void GrafUpdateHiddenObjects(MenuObject obj, float timeStacker)
+        {
+            for (int i = 0; i < obj.subObjects.Count; i++)
+            {
+                MenuObject subObj = obj.subObjects[i];
+                (subObj as IPLEASEUPDATEME)?.HiddenGrafUpdate(timeStacker);
+                GrafUpdateHiddenObjects(subObj, timeStacker);
+            }
         }
         public void AddObjects(params MenuObject[] objects)
         {
